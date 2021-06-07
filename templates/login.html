@@ -1,0 +1,28 @@
+<link href="static/stylesheets/login.css" rel="stylesheet" >
+<link rel="shortcut icon" href="{{ url_for('static', filename='favicon.ico') }}">
+
+<div class="formLogin">
+    <form action="" method = "POST">
+        <p>Username <input type = "username" name = "username" /></p>
+        <p>Password <input type = "password" name = "password" /></p>
+        <p>Submit <input type = "submit" value = "Submit" /></p>
+    </form>
+</div>
+
+<div class="topBar">
+    <p>Login</p>
+</div>
+<div class="sideBar">
+    <div class="sepLine"></div>
+    <p><a href="login">Login</a></p>
+    <div class="sepLine"></div>
+    <p><a href="register">Register</a></p>
+    <div class="sepLine"></div>
+    <p><a href="chat">Chat</a></p>
+    <div class="sepLine"></div>
+    <p><a href="logout">Logout</a></p>
+    <div class="sepLine"></div>
+</div>
+<div class="IncorrectPass">
+    <p>{{context}}</p>
+</div>

@@ -1,0 +1,11 @@
+<link rel="shortcut icon" href="{{ url_for('static', filename='favicon.ico') }}">
+<link href="static/stylesheets/message.css" rel="stylesheet" >
+
+<div class="chatwindow">
+    <h2>fieryhenry chat</h2>
+    <h2> Room: {{session["room"]}}</h2><br>
+    <textarea id="chat" cols="70" rows="10" placeholder="No messages yet. Start one..."></textarea><br><br>
+    <input type="text" size="60" placeholder="Enter your message here"/>
+    <button type="button" id="send" class="btn btn-success">SEND</button><br><br>
+    <center> <button type="button" class="btn btn-danger">Leave this Chat</button></center>
+</div>
