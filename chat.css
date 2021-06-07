@@ -1,0 +1,80 @@
+body {
+    background-color: #121212;
+}
+
+
+.sideBar {
+  height: 100%; 
+  width: 125px;
+  position: fixed;
+  z-index: 2;
+  top: 0;
+  left: 0;
+  background-color: #181818;
+  overflow-x: hidden;
+  padding-top: 100px;
+}
+.sideBar a {
+    color: #ffffff;
+    text-decoration: none;
+    font-family: 'Titillium Web', sans-serif;
+    font-size: 2rem;
+}
+.sepLine {
+    width: 130px;
+    height: 2px;
+    position: relative;
+    top: 0px;
+    left: 0px;
+    z-index: 3;
+    background: #646464;
+}
+
+.topBar {
+    width: -moz-available;
+    height: 100px;
+    background: #181818;
+    position: absolute;
+    top: 0px;
+    left: 0px;
+    z-index: 0;
+}
+.topBar p {
+    text-align: left;
+    margin-left: 120px;
+    margin-top: 0px;
+    font-family: 'Titillium Web', sans-serif;
+    font-size: 5rem;
+    color: #aaaaaa;
+}
+
+
+.formLogin {
+    position: absolute;
+    top: 100px;
+    left: 130px;
+    color: #ffffff;
+    font-family: 'Titillium Web', sans-serif;
+    z-index: 5;
+}
+
+
+.IncorrectPass {
+    position: absolute;
+    top: 105px;
+    left: 400px;
+    color: rgb(235, 85, 85);
+    font-family: "Titillium Web", sans-serif;
+}
+.IncorrectPass p {
+    font: bold 1.2rem sans-serif;
+    text-align: center;
+    z-index: inherit;
+}
+.Rooms {
+    position: absolute;
+    top: 110px;
+    left: 130px;
+    color: #ffffff;
+    font-family: "Titillium Web", sans-serif;
+}

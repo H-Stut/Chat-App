@@ -1,5 +1,5 @@
 import re
-from flask import Flask,render_template,request,redirect, session, sessions
+from flask import Flask,render_template,request,redirect, session
 from flask_login import login_required, current_user, login_user, logout_user
 from models import RoomModel, UserModel,db,login
 from flask_limiter import Limiter
@@ -34,11 +34,17 @@ def chat():
             session["room"] = room
             session["username"] = current_user.username
 
+            username = RoomModel.query.filter_by(username=current_user.username).all()
+            roomNames = ["a"] * len(username)
+
+            for i in range(0, len(username)):
+                roomNames[i] = username[i].room_name
+
             name = RoomModel.query.filter_by(room_name=room).first()
             if name is not None and name.check_room_password(password):
                 return redirect("/message")
             if name is None or not name.check_room_password(password):
-                return render_template("chat.html", context="Incorrect room name or password")
+                return render_template("chat.html", context="Incorrect room name or password", session=session, count=len(username), rooms=roomNames)
             return render_template("chat.html", session=session)
         elif "create" in request.form:
             room = request.form["name"]
@@ -57,8 +63,8 @@ def chat():
                 return render_template("chat.html", context="Room name already exists did you mean to join?",  session=session, count=len(username), rooms=roomNames)
             if name is None:
                 username = RoomModel.query.filter_by(username=current_user.username).all()
-                if len(username) > 5:
-                    return render_template("chat.html", context="You cannot create more than 5 chat rooms per account", session=session, count=len(username), rooms=roomNames)
+                if len(username) > 10:
+                    return render_template("chat.html", context="You cannot create more than 10 chat rooms per account", session=session, count=len(username), rooms=roomNames)
                 user = RoomModel()
                 user.room_name = room
                 user.username = current_user.username
@@ -69,21 +75,6 @@ def chat():
                 return redirect("/message")
         elif "joinS" in request.form:
             return redirect("/message")
-
-
-        elif "rem" in request.form:
-            user = RoomModel.query.filter_by(room_name = request.form["rem"]).all()
-            db.session.delete(user[0])
-            db.session.commit()
-
-            username = RoomModel.query.filter_by(username=current_user.username).all()
-            roomNames = ["a"] * len(username)
-
-            for i in range(0, len(username)):
-                roomNames[i] = username[i].room_name
-
-            return render_template('chat.html', session=session, count=len(username), rooms=roomNames)
-
         return render_template("chat.html", session=session)
     else:
         username = RoomModel.query.filter_by(username=current_user.username).all()
@@ -94,7 +85,31 @@ def chat():
 
 @app.route("/message", methods=["POST", "GET"])
 def message():
-    return render_template("message.html", session=session)
+    if request.method == "GET":
+        username = current_user.username
+        room = session.get("room")
+        room2 = RoomModel.query.filter_by(room_name=room).first()
+        owner = room2.username
+        if (username == owner):
+            return render_template("message.html", session=session, admin=True)
+        else:
+            return render_template("message.html", session=session, admin=False)
+    else:
+        if "rem" in request.form:
+            user = RoomModel.query.filter_by(room_name = session.get("room")).all()
+            db.session.delete(user[0])
+            db.session.commit()
+            print("REM")
+
+            username = RoomModel.query.filter_by(username=current_user.username).all()
+            roomNames = ["a"] * len(username)
+
+            for i in range(0, len(username)):
+                roomNames[i] = username[i].room_name
+
+            return redirect("/chat")
+        else:
+            return render_template('message.html', session=session)
 
 @app.route('/login', methods = ['POST', 'GET'])
 def login():
