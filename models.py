@@ -6,6 +6,15 @@ from flask_login import LoginManager
 login = LoginManager()
 db = SQLAlchemy()
 
+class MessageModel(UserMixin, db.Model):
+    __tablename__ = "messages"
+    id = db.Column(db.Integer, primary_key=True)
+    author = db.Column(db.String(100))
+    content = db.Column(db.String())
+    room = db.Column(db.String())
+    time = db.Column(db.String())
+        
+
 class RoomModel(UserMixin, db.Model):
     __tablename__ = "rooms"
 

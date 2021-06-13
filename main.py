@@ -1,11 +1,12 @@
-import re
 from flask import Flask,render_template,request,redirect, session
 from flask_login import login_required, current_user, login_user, logout_user
-from models import RoomModel, UserModel,db,login
+from werkzeug import debug
+from models import RoomModel, UserModel,db,login, MessageModel
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
 from flask_socketio import SocketIO, join_room, leave_room, emit
 from flask_session import Session
+from datetime import datetime
  
 app = Flask(__name__)
 
@@ -19,6 +20,7 @@ app.config["SESSION_TYPE"] = "filesystem"
 db.init_app(app)
 login.init_app(app)
 login.login_view = 'login'
+socketio = SocketIO(app)
  
 @app.before_first_request
 def create_all():
@@ -74,6 +76,7 @@ def chat():
                 print(username)
                 return redirect("/message")
         elif "joinS" in request.form:
+            session["room"] = request.form["joinS"]
             return redirect("/message")
         return render_template("chat.html", session=session)
     else:
@@ -83,12 +86,74 @@ def chat():
             roomNames[i] = username[i].room_name
         return render_template('chat.html', session=session, count=len(username), rooms=roomNames)
 
+@socketio.on("connected")
+def connected(json, methods=["GET", "POST"]):
+    allMessages = MessageModel.query.filter_by(room=session.get("room")).all()
+    content=[""] * len(allMessages)
+    authors=[""] * len(allMessages)
+    time=[""] * len(allMessages)
+    for i in range(0, len(allMessages)):
+        content[i] = allMessages[i].content
+        authors[i] = allMessages[i].author
+        time[i] = allMessages[i].time
+
+    socketio.emit('message recieved', {
+        "author" : authors,
+        "content" : content,
+        "time" : time
+        }, callback=messageReceived)
+
+@socketio.on('message sent')
+def messageReceived(json, methods=['GET', 'POST']):
+    json["username"] = current_user.username
+
+    messages = MessageModel()
+    messages.room = session.get("room")
+    messages.author = current_user.username
+    messages.content = json["message"]
+    now = datetime.now()
+    current_time = now.strftime("%H:%M:%S")
+    messages.time = current_time
+
+    db.session.add(messages)
+    db.session.commit()
+
+    allMessages = MessageModel.query.filter_by(room=session.get("room")).all()
+    content=[""] * len(allMessages)
+    authors=[""] * len(allMessages)
+    time=[""] * len(allMessages)
+    for i in range(0, len(allMessages)):
+        content[i] = allMessages[i].content
+        authors[i] = allMessages[i].author
+        time[i] = allMessages[i].time
+
+    socketio.emit('message recieved', {
+        "author" : authors,
+        "content" : content,
+        "time" : time
+        }, callback=messageReceived)
+
 @app.route("/message", methods=["POST", "GET"])
+@login_required
 def message():
     if request.method == "GET":
+        if session["room"] == None:
+            username = RoomModel.query.filter_by(username=current_user.username).all()
+            roomNames = ["a"] * len(username)
+            for i in range(0, len(username)):
+                roomNames[i] = username[i].room_name
+            return redirect("/chat")
+
         username = current_user.username
         room = session.get("room")
         room2 = RoomModel.query.filter_by(room_name=room).first()
+        if room2 == None:
+            username = RoomModel.query.filter_by(username=current_user.username).all()
+            roomNames = ["a"] * len(username)
+            for i in range(0, len(username)):
+                roomNames[i] = username[i].room_name
+            return redirect("/chat")
+
         owner = room2.username
         if (username == owner):
             return render_template("message.html", session=session, admin=True)
@@ -97,9 +162,11 @@ def message():
     else:
         if "rem" in request.form:
             user = RoomModel.query.filter_by(room_name = session.get("room")).all()
+            message = MessageModel.query.filter_by(room = session.get("room")).all()
             db.session.delete(user[0])
+            for i in range(0, len(message)):
+                db.session.delete(message[i])
             db.session.commit()
-            print("REM")
 
             username = RoomModel.query.filter_by(username=current_user.username).all()
             roomNames = ["a"] * len(username)
@@ -107,9 +174,11 @@ def message():
             for i in range(0, len(username)):
                 roomNames[i] = username[i].room_name
 
+            session["room"] = None
+
             return redirect("/chat")
         else:
-            return render_template('message.html', session=session)
+            return render_template('message.html')
 
 @app.route('/login', methods = ['POST', 'GET'])
 def login():
@@ -162,4 +231,4 @@ def logout():
 
 
 if __name__== "__main__":
-    app.run(debug=True)
+    socketio.run(app, debug=True)

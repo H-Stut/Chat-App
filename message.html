@@ -1,18 +1,56 @@
 <link rel="shortcut icon" href="{{ url_for('static', filename='favicon.ico') }}">
 <link href="static/stylesheets/message.css" rel="stylesheet" >
+<script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js" integrity="sha512-q/dWJ3kcmjBLU4Qc47E4A9kTB4m3wuTY7vkFJDTZKjTs8jhyGQnaUrxa0Ytd0ssMZhbNua9hE+E7Qv1j+DyZwA==" crossorigin="anonymous"></script>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
+
+<div class="SendMess">
+    <form action="" method="POST">
+        <input type="text" class="message" placeholder="Message #{{session['room']}}" />
+        <input type="submit" value="Send Message"/>
+    </form>
+</div>
+<script type="text/javascript" charset="utf-8">
+    var socket = io();
+    socket.on('connect', function() {
+        socket.emit('connected', {data: 'I\'m connected!'});
+    });
+
+    var form = $("form").on("submit", function(e) {
+        e.preventDefault();
+        let user_input = $("input.message").val();
+        socket.emit("message sent", {
+            message : user_input,
+            username : "bruh"
+        });
+        $("input.message").val("").focus();
+    });
+    socket.on("message recieved", function(content) {
+        const div = document.createElement("div");
+        let content2 = content["content"];
+        let author = content["author"];
+        let time = content["time"];
+        for(let i = 0; i <content2.length; i++) {
+            const content = document.createElement("p")
+            content.textContent = author[i] + ": " + content2[i] + " Sent at: " + time[i] + "\n"
+            div.appendChild(content);
+            const currentDiv = document.getElementById("messages");
+            currentDiv.innerText = div.innerText
+        }
+        
+    });
+</script>
 
 <div class="chatwindow">
-    <h2>fieryhenry chat</h2>
     <h2> Room: {{session["room"]}}</h2><br>
-    <textarea id="chat" cols="70" rows="10" placeholder="No messages yet. Start one..."></textarea><br><br>
-    <input type="text" size="60" placeholder="Enter your message here"/>
-    <button type="button" id="send" class="btn btn-success">SEND</button><br><br>
-    <center> <button type="button" class="btn btn-danger">Leave this Chat</button></center>
 </div>
+
+<div class = "messages" id="messages">Enter messages here.</div>
+
 {% if admin %}
     <div class="DelRoom">
         <form action="" method = "POST">
             <form action="" method = "POST">
+                <input type="hidden" name="room" value = "{{session['room']}}" />
                 <input type = "submit" name="rem" value = "Delete Room" />
             </form>
         </form>
