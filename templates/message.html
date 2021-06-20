@@ -1,58 +1,150 @@
 <link rel="shortcut icon" href="{{ url_for('static', filename='favicon.ico') }}">
-<link href="static/stylesheets/message.css" rel="stylesheet" >
-<script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js" integrity="sha512-q/dWJ3kcmjBLU4Qc47E4A9kTB4m3wuTY7vkFJDTZKjTs8jhyGQnaUrxa0Ytd0ssMZhbNua9hE+E7Qv1j+DyZwA==" crossorigin="anonymous"></script>
+<link href="static/stylesheets/message.css" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"
+    integrity="sha512-q/dWJ3kcmjBLU4Qc47E4A9kTB4m3wuTY7vkFJDTZKjTs8jhyGQnaUrxa0Ytd0ssMZhbNua9hE+E7Qv1j+DyZwA=="
+    crossorigin="anonymous"></script>
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
 
-<div class="SendMess">
-    <form action="" method="POST">
-        <input type="text" class="message" placeholder="Message #{{session['room']}}" />
-        <input type="submit" value="Send Message"/>
-    </form>
+<div class="wrapper">
+    <div class="chat-box">
+        <div class="chat-head" id="chat-head">
+            <p>Room:</p>
+            <h2>{{session["room"]}}</h2>
+        </div>
+        <div class="chat-body" id="chat-body">
+            <div class="msg-insert-left" id="msg-insert-left">
+            </div>
+            <div class="msg-insert-right" id="msg-insert-right">
+            </div>
+        </div>
+        <div class="SendMess" id="SendMess">
+            <form action="" method="POST">
+                <input type="text" class="message" placeholder="Message #{{session['room']}}" />
+                <input type="hidden" value="Send Message" />
+            </form>
+        </div>
+    </div>
 </div>
 <script type="text/javascript" charset="utf-8">
+    var w = $(window).width();
+    $('.chat-body').css('width', w);
+    $('.chat-head').css('width', w);
+    $('.chat-box').css('width', w);
     var socket = io();
-    socket.on('connect', function() {
-        socket.emit('connected', {data: 'I\'m connected!'});
+    socket.on('connect', function () {
+        socket.emit('connected', { data: 'I\'m connected!' });
     });
 
-    var form = $("form").on("submit", function(e) {
+    var form = $("form").on("submit", function (e) {
+        var w = $(window).width();
+        $('.chat-body').css('width', w);
+        $('.chat-head').css('width', w);
+        $('.chat-box').css('width', w);
+        console.log("test");
         e.preventDefault();
         let user_input = $("input.message").val();
         socket.emit("message sent", {
-            message : user_input,
-            username : "bruh"
+            message: user_input,
+            username: "bruh"
         });
         $("input.message").val("").focus();
     });
-    socket.on("message recieved", function(content) {
+    socket.on("get", function (content) {
+        let content2 = content["content"];
+        let author = content["author"];
+        let time = content["time"];
+        let username = content["username"];
+        let currentDiv = document.getElementById("msg-insert-right");
+        for (let i = 0; i < content2.length; i++) {
+            const div = document.createElement("div");
+            const contentEl = document.createElement("h1");
+            const timeEl = document.createElement("h2");
+            const usernameEl = document.createElement("span");
+
+            contentEl.textContent = content2[i];
+            timeEl.textContent = time[i];
+            usernameEl.textContent = author[i];
+            usernameEl.id = "username";
+
+            div.append(usernameEl);
+            div.removeAttribute("span");
+            div.append(timeEl);
+            div.append(usernameEl);
+            div.append(contentEl);
+            div.className="msg-send";
+
+            if (author[i] == username) {
+                currentDiv = document.getElementById("msg-insert-right");
+            }
+            else {
+                currentDiv = document.getElementById("msg-insert-left");
+            }
+            const body = document.getElementById("chat-body");
+            currentDiv.append(div);
+            timeEl.style.left += $("#username").width() + 65;
+            body.scrollTop = body.scrollHeight;
+        }
+
+    });
+    socket.on("message recieved", function (content) {
         const div = document.createElement("div");
         let content2 = content["content"];
         let author = content["author"];
         let time = content["time"];
-        for(let i = 0; i <content2.length; i++) {
-            const content = document.createElement("p")
-            content.textContent = author[i] + ": " + content2[i] + " Sent at: " + time[i] + "\n"
-            div.appendChild(content);
-            const currentDiv = document.getElementById("messages");
-            currentDiv.innerText = div.innerText
+        let username = content["username"];
+        let currentDiv = document.getElementById("msg-insert-left");
+
+        for (let i = 0; i < content2.length; i++) {
+            div.textContent = ""
+
+            const contentEl = document.createElement("h1");
+            const timeEl = document.createElement("h2");
+            const usernameEl = document.createElement("span");
+            usernameEl.id = "username";
+
+            contentEl.textContent = content2[i];
+            timeEl.textContent = time[i];
+
+            usernameEl.textContent = author[i];
+
+            div.append(usernameEl);
+            div.removeAttribute("span");
+            div.append(timeEl);
+            div.append(usernameEl);
+            div.append(contentEl);
+            div.className="msg-send";
+
+            if (author[i] == username) {
+                currentDiv = document.getElementById("msg-insert-right");
+            }
+            else {
+                currentDiv = document.getElementById("msg-insert-left");
+            }
+            const body = document.getElementById("chat-body");
+            const top = document.getElementById("chat-head");
+            currentDiv.append(div);
+            timeEl.style.left += $("#username").width() + 65;
+            body.style.height = top.style.height;
+            body.scrollTop = body.scrollHeight;
         }
-        
+
     });
 </script>
 
-<div class="chatwindow">
-    <h2> Room: {{session["room"]}}</h2><br>
-</div>
-
-<div class = "messages" id="messages">Enter messages here.</div>
-
 {% if admin %}
-    <div class="DelRoom">
-        <form action="" method = "POST">
-            <form action="" method = "POST">
-                <input type="hidden" name="room" value = "{{session['room']}}" />
-                <input type = "submit" name="rem" value = "Delete Room" />
+<div class="rem-wrap">
+    <div class="remove-room">
+        <form action="" method="POST">
+            <form action="" method="POST">
+                <input type="hidden" name="room" value="{{session['room']}}" />
+                <input type="submit" name="rem" value="Delete Room" />
             </form>
         </form>
     </div>
+</div>
 {% endif %}
+<div class="leave-room">
+    <form action="" method="POST">
+        <input type="submit" name="leave" value="Leave Room"/>
+    </form>
+</div>
