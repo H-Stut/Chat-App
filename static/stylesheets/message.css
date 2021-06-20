@@ -1,19 +1,162 @@
-.SendMess{
-    flood-color: black;
-}
-.SendMess input[type=text]{
-    color:white;
-    background-color: black;
-    border-radius: 20px;
-}
-.SendMess input[type=submit]{
-    color:white;
-    background-color: black;
-}
-.messages {
-    color:rgb(192, 192, 192);
+*{
+    padding: 0px;
+    margin: 0px;
     font-family: 'Titillium Web', sans-serif;
 }
 body{
+    height: 100%;
+    background: #121212;
+}
+
+.chat-box{
+    position: absolute;
+    left: 0px;
+    bottom: 0px;
+    height: 100vh;
+    width: 100vh;
+    border-radius: 5px 5px 0px 0px;
+}
+
+.remove-room{
+    display: grid;
+    position: absolute;
+    bottom: 7px;
+    left: 325px;
+}
+.remove-room input{
+    border-radius: 6px;
+    color:black;
+    font-weight: bold;
+    border: 2px solid #f44336;
+    height: 30px;
+    background-color: white;
+    transition-duration: 0.4s;
+    width:100px;
+}
+.remove-room input:hover{
+    background-color: #f44336;
+    color:white;
+}
+.leave-room{
+    display: grid;
+    position: absolute;
+    bottom: 7.5px;
+    left: 210px
+}
+.leave-room input{
+    border-radius: 6px;
+    color:white;
+    font-weight: bold;
+    border: 2px solid #4CAF50;
+    height: 30px;
+    background-color: #4CAF50;
+    transition-duration: 0.4s;
+    width:100px;
+}
+.leave-room input:hover{
+    background-color: white;
+    color: black;
+}
+.chat-head{
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    width: inherit;
+    height: 45px;
+    background: #181818;
+    border-radius: 5px 5px 0px 0px;
+    z-index: 1;
+}
+.chat-head p {
+    color: #2ecc71;
+    padding: 8px;
+    font-family: 'Titillium Web', sans-serif;
+    font-size: 1.5rem;
+    display: inline-block;
+}
+.chat-head h2{
+    color: white;
+    padding: 8px;
+    position: relative;
+    left: -10px;
+    display: inline-block;
+}
+
+.chat-body{
+    height: 91vh;
     background-color: #121212;
+    width: 100%;
+    overflow: auto;
+    z-index: 0;
+}
+
+.SendMess {
+    background-color: #181818;
+    position: relative;
+    bottom: -40px;
+    padding: 20px;
+}
+.SendMess input{
+    width: inherit;
+    height: inherit;
+    box-sizing: border-box;
+    resize: none;
+    border: solid;
+    background-color: #101010;
+    border-color: #101010;
+    box-shadow: #101010;
+    color: #ffff;
+    border-radius: 20px;
+    position: absolute;
+    left: 10px;
+    padding: 5px;
+    bottom: 4px;
+    transition-duration: 0.7s;
+}
+.SendMess input:hover{
+    border-color: royalblue;
+}
+.msg-send{
+    word-wrap: break-word;
+    background: #121212;
+    position: relative;
+    margin: 10px auto;
+    height: fit-content;
+    right: 30px;
+    top: 50px;
+    width: 200px;
+    padding: 5px 5px 5px 10px;
+}
+.msg-send h1{
+    position: relative;
+    right: -55px;
+    bottom: 15px;
+    color: white;
+    font-size: 0.8rem;
+    word-wrap: break-word;
+}
+.msg-send span{
+    position: relative;
+    bottom: 25px;
+    right: -55px;
+    font-size: 16px;
+    color: rgb(118, 143, 221);
+}
+.msg-send h2{
+    position: relative;
+    bottom: 10px;
+    right: -75px;
+    color: rgb(71, 71, 71);
+    font-size: 0.7rem;
+}
+.msg-insert-right{
+    display:grid;
+    align-items: left;
+    justify-content: left;
+}
+.msg-insert-left{
+    display:grid;
+    align-items: left;
+    justify-content: left;
 }
