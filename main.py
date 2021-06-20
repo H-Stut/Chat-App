@@ -45,28 +45,37 @@ def chat():
             name = RoomModel.query.filter_by(room_name=room).first()
             if name is not None and name.check_room_password(password):
                 return redirect("/message")
-            if name is None or not name.check_room_password(password):
+            elif name is None:
+                return render_template("chat.html", context="Room does not exist", session=session, count=len(username), rooms=roomNames)
+            elif name is None or not name.check_room_password(password):
                 return render_template("chat.html", context="Incorrect room name or password", session=session, count=len(username), rooms=roomNames)
             return render_template("chat.html", session=session)
         elif "create" in request.form:
-            room = request.form["name"]
-            password = request.form["password"]
-            session["room"] = room
-            session["username"] = current_user.username
-
             username = RoomModel.query.filter_by(username=current_user.username).all()
             roomNames = ["a"] * len(username)
+            password = request.form["password"]
 
             for i in range(0, len(username)):
                 roomNames[i] = username[i].room_name
+
+            room = request.form["name"]
+            if len(room) > 32:
+                return render_template("chat.html", context="Room name cannot be longer that 32 characters", session=session, count=len(username), rooms=roomNames)
+            if len(password) > 64:
+                return render_template("chat.html", context="Password cannot be longer that 64 characters", session=session, count=len(username), rooms=roomNames)
+
+            session["room"] = room
+            session["username"] = current_user.username
+
+
 
             name = RoomModel.query.filter_by(room_name=room).first()
             if name is not None:
                 return render_template("chat.html", context="Room name already exists did you mean to join?",  session=session, count=len(username), rooms=roomNames)
             if name is None:
                 username = RoomModel.query.filter_by(username=current_user.username).all()
-                if len(username) > 10:
-                    return render_template("chat.html", context="You cannot create more than 10 chat rooms per account", session=session, count=len(username), rooms=roomNames)
+                if len(username) > 20:
+                    return render_template("chat.html", context="You cannot create more than 20 chat rooms per account", session=session, count=len(username), rooms=roomNames)
                 user = RoomModel()
                 user.room_name = room
                 user.username = current_user.username
@@ -97,10 +106,12 @@ def connected(json, methods=["GET", "POST"]):
         authors[i] = allMessages[i].author
         time[i] = allMessages[i].time
 
-    socketio.emit('message recieved', {
+    socketio.emit('get', {
         "author" : authors,
         "content" : content,
-        "time" : time
+        "time" : time,
+                "username" : current_user.username
+
         }, callback=messageReceived)
 
 @socketio.on('message sent')
@@ -112,7 +123,7 @@ def messageReceived(json, methods=['GET', 'POST']):
     messages.author = current_user.username
     messages.content = json["message"]
     now = datetime.now()
-    current_time = now.strftime("%H:%M:%S")
+    current_time = now.strftime("%d %b %Y %I:%M %p")
     messages.time = current_time
 
     db.session.add(messages)
@@ -130,7 +141,8 @@ def messageReceived(json, methods=['GET', 'POST']):
     socketio.emit('message recieved', {
         "author" : authors,
         "content" : content,
-        "time" : time
+        "time" : time,
+        "username" : current_user.username
         }, callback=messageReceived)
 
 @app.route("/message", methods=["POST", "GET"])
@@ -177,6 +189,9 @@ def message():
             session["room"] = None
 
             return redirect("/chat")
+        if "leave" in request.form:
+            session["room"] = None
+            return redirect("/chat")
         else:
             return render_template('message.html')
 
@@ -212,7 +227,12 @@ def register():
             return render_template("register.html", context="Confirmation and password must be the same")
         elif len(password) < 6:
             return render_template("register.html", context="Password must be at least 6 characters")
- 
+        elif len(password) > 64:
+            return render_template("register.html", context="Password cannot be longer than 64 characters")
+        elif len(username) < 4:
+            return render_template("register.html", context="Username must be at least 4 characters long")
+        elif len(username) > 32:
+            return render_template("register.html", context="Username must be less than 32 characters")
         elif UserModel.query.filter_by(username=username).first():
             return render_template("register.html", context="This username is already in use")
              
