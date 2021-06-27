@@ -61,8 +61,8 @@ body {
 
 .IncorrectPass {
     position: absolute;
-    top: 230px;
-    left: 130px;
+    top: 105px;
+    left: 400px;
     color: rgb(235, 85, 85);
     font-family: "Titillium Web", sans-serif;
 }

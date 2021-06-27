@@ -7,7 +7,31 @@ body{
     height: 100%;
     background: #121212;
 }
-
+.alert {
+    padding: 20px;
+    background-color: #f44336; /* Red */
+    color: white;
+    margin-bottom: 15px;
+    position: fixed;
+    z-index: 20;
+  }
+  
+  /* The close button */
+.closebtn {
+    margin-left: 15px;
+    color: white;
+    font-weight: bold;
+    float: right;
+    font-size: 22px;
+    line-height: 20px;
+    cursor: pointer;
+    transition: 0.3s;
+}
+  
+/* When moving the mouse over the close button */
+.closebtn:hover {
+    color: black;
+}
 .chat-box{
     position: absolute;
     left: 0px;
@@ -17,11 +41,12 @@ body{
     border-radius: 5px 5px 0px 0px;
 }
 
-.remove-room{
+.remove-room form{
     display: grid;
-    position: absolute;
-    bottom: 7px;
+    position: relative;
+    bottom: 25px;
     left: 325px;
+    width: 0px;
 }
 .remove-room input{
     border-radius: 6px;
@@ -37,11 +62,12 @@ body{
     background-color: #f44336;
     color:white;
 }
-.leave-room{
+.leave-room form{
     display: grid;
-    position: absolute;
-    bottom: 7.5px;
-    left: 210px
+    position: relative;
+    bottom: -5px;
+    left: 210px;
+    width: 0px;
 }
 .leave-room input{
     border-radius: 6px;
