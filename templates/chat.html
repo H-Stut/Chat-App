@@ -1,5 +1,16 @@
 <link href="static/stylesheets/chat.css" rel="stylesheet" >
 <link rel="shortcut icon" href="{{ url_for('static', filename='favicon.ico') }}">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"
+    integrity="sha512-q/dWJ3kcmjBLU4Qc47E4A9kTB4m3wuTY7vkFJDTZKjTs8jhyGQnaUrxa0Ytd0ssMZhbNua9hE+E7Qv1j+DyZwA=="
+    crossorigin="anonymous"></script>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
+
+<script type="text/javascript" charset="utf-8">
+    socket = io()
+    socket.on("displayError", function () {
+        console.log("test")
+    })
+</script>
 
 <div class="formLogin">
     <form id="roomSelect" action="" method = "POST">
@@ -38,6 +49,6 @@
     <p><a href="logout">Logout</a></p>
     <div class="sepLine"></div>
 </div>
-<div class="IncorrectPass">
+<div class="IncorrectPass" id="error">
     <p>{{context}}</p>
 </div>

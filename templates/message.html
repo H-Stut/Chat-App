@@ -11,6 +11,10 @@
             <p>Room:</p>
             <h2>{{session["room"]}}</h2>
         </div>
+        <div class="alert" id="alert" hidden="true">
+            <span class="closebtn" onclick="this.parentElement.style.display='none';">&times;</span>
+            The host has deleted the room, you will be redirected in 7 seconds
+        </div> 
         <div class="chat-body" id="chat-body">
             <div class="msg-insert-left" id="msg-insert-left">
             </div>
@@ -23,6 +27,24 @@
                 <input type="hidden" value="Send Message" />
             </form>
         </div>
+        <div class="leave-room" id="leave">
+            <form action="" method="POST">
+                <input type="submit" name="leave" value="Leave Room" />
+            </form>
+        </div>
+        {% if admin %}
+        <div class="rem-wrap">
+            <div class="remove-room" id="remove">
+                <form action="" method="POST">
+                    <form action="" method="POST">
+                        <input type="hidden" name="room" value="{{session['room']}}" />
+                        <input type="submit" name="rem" value="Delete Room" />
+                    </form>
+                </form>
+            </div>
+        </div>
+        {% endif %}
+        
     </div>
 </div>
 <script type="text/javascript" charset="utf-8">
@@ -35,17 +57,41 @@
         socket.emit('connected', { data: 'I\'m connected!' });
     });
 
-    var form = $("form").on("submit", function (e) {
+    var form = $("#remove").on("submit", function (e) {
+        e.preventDefault();
+        socket.emit("remove");
+    })
+    var form = $("#leave").on("submit", function (e) {
+        e.preventDefault();
+        socket.emit("leave");
+    })
+    function sleep(ms) {
+        return new Promise(resolve => setTimeout(resolve, ms));
+    }
+    socket.on("redirect", async function (content) {
+        let url = content["url"]
+        if (content["alert"]) {
+            document.getElementById("alert").hidden = false;
+            for (let i = 6; i > 0; i--){
+                document.getElementById("alert").innerText = "The host has deleted the room, you will be redirected in " + i + " seconds";
+                await sleep(1000);
+            }
+        }
+        window.location.replace(url)
+    })
+
+    var form = $("#SendMess").on("submit", function (e) {
         var w = $(window).width();
         $('.chat-body').css('width', w);
         $('.chat-head').css('width', w);
         $('.chat-box').css('width', w);
-        console.log("test");
         e.preventDefault();
+        console.log(socket)
         let user_input = $("input.message").val();
         socket.emit("message sent", {
             message: user_input,
-            username: "bruh"
+            username: "bruh",
+            socket: "fieryhenry2"
         });
         $("input.message").val("").focus();
     });
@@ -54,24 +100,25 @@
         let author = content["author"];
         let time = content["time"];
         let username = content["username"];
+        let session = content["session"];
         let currentDiv = document.getElementById("msg-insert-right");
         for (let i = 0; i < content2.length; i++) {
             const div = document.createElement("div");
             const contentEl = document.createElement("h1");
             const timeEl = document.createElement("h2");
-            const usernameEl = document.createElement("span");
+            const usernameEl2 = document.createElement("span");
 
             contentEl.textContent = content2[i];
             timeEl.textContent = time[i];
-            usernameEl.textContent = author[i];
-            usernameEl.id = "username";
+            usernameEl2.textContent = author[i];
+            usernameEl2.id = author[i];
 
-            div.append(usernameEl);
+            div.append(usernameEl2);
             div.removeAttribute("span");
             div.append(timeEl);
-            div.append(usernameEl);
+            div.append(usernameEl2);
             div.append(contentEl);
-            div.className="msg-send";
+            div.className = "msg-send";
 
             if (author[i] == username) {
                 currentDiv = document.getElementById("msg-insert-right");
@@ -81,17 +128,21 @@
             }
             const body = document.getElementById("chat-body");
             currentDiv.append(div);
-            timeEl.style.left += $("#username").width() + 65;
+            timeEl.style.left += $("#" + author[i]).width() + 65;
+            console.log($("#" + author[i]).width() + 65)
             body.scrollTop = body.scrollHeight;
         }
 
     });
     socket.on("message recieved", function (content) {
+        console.log("das")
         const div = document.createElement("div");
         let content2 = content["content"];
         let author = content["author"];
         let time = content["time"];
         let username = content["username"];
+        let session = content["session"]
+
         let currentDiv = document.getElementById("msg-insert-left");
 
         for (let i = 0; i < content2.length; i++) {
@@ -112,7 +163,7 @@
             div.append(timeEl);
             div.append(usernameEl);
             div.append(contentEl);
-            div.className="msg-send";
+            div.className = "msg-send";
 
             if (author[i] == username) {
                 currentDiv = document.getElementById("msg-insert-right");
@@ -130,21 +181,3 @@
 
     });
 </script>
-
-{% if admin %}
-<div class="rem-wrap">
-    <div class="remove-room">
-        <form action="" method="POST">
-            <form action="" method="POST">
-                <input type="hidden" name="room" value="{{session['room']}}" />
-                <input type="submit" name="rem" value="Delete Room" />
-            </form>
-        </form>
-    </div>
-</div>
-{% endif %}
-<div class="leave-room">
-    <form action="" method="POST">
-        <input type="submit" name="leave" value="Leave Room"/>
-    </form>
-</div>
