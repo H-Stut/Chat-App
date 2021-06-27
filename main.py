@@ -7,6 +7,7 @@ from flask_limiter.util import get_remote_address
 from flask_socketio import SocketIO, join_room, leave_room, emit
 from flask_session import Session
 from datetime import datetime
+import time
  
 app = Flask(__name__)
 
@@ -85,7 +86,8 @@ def chat():
                 print(username)
                 return redirect("/message")
         elif "joinS" in request.form:
-            session["room"] = request.form["joinS"]
+            room = request.form["joinS"]
+            session["room"] = room
             return redirect("/message")
         return render_template("chat.html", session=session)
     else:
@@ -95,8 +97,40 @@ def chat():
             roomNames[i] = username[i].room_name
         return render_template('chat.html', session=session, count=len(username), rooms=roomNames)
 
+@socketio.on("remove")
+def removeRoom():
+    user = RoomModel.query.filter_by(room_name = session.get("room")).all()
+    message = MessageModel.query.filter_by(room = session.get("room")).all()
+    db.session.delete(user[0])
+    for i in range(0, len(message)):
+        db.session.delete(message[i])
+    db.session.commit()
+
+    username = RoomModel.query.filter_by(username=current_user.username).all()
+    roomNames = ["a"] * len(username)
+    for i in range(0, len(username)):
+        roomNames[i] = username[i].room_name
+
+    socketio.emit("redirect", {
+        "url" : "/chat",
+        "alert" : True
+        }, callback=removeRoom, room=session.get("room"))
+
+    leave_room(session.get("room"))
+    session["room"] = None
+@socketio.on("leave")
+def leaveRoom():
+    socketio.emit("redirect", {
+        "url" : "/chat",
+        "alert" : False
+        }, callback=removeRoom, room=session.get("room"))
+
+    leave_room(session.get("room"))
+    session["room"] = None
+
 @socketio.on("connected")
 def connected(json, methods=["GET", "POST"]):
+    join_room(session.get("room"))
     allMessages = MessageModel.query.filter_by(room=session.get("room")).all()
     content=[""] * len(allMessages)
     authors=[""] * len(allMessages)
@@ -110,14 +144,15 @@ def connected(json, methods=["GET", "POST"]):
         "author" : authors,
         "content" : content,
         "time" : time,
-                "username" : current_user.username
-
-        }, callback=messageReceived)
+        "username" : current_user.username,
+        "session" : session.get("room")
+        }, callback=messageReceived, room=request.sid)
 
 @socketio.on('message sent')
 def messageReceived(json, methods=['GET', 'POST']):
     json["username"] = current_user.username
 
+    print(session.get("room"))
     messages = MessageModel()
     messages.room = session.get("room")
     messages.author = current_user.username
@@ -138,12 +173,14 @@ def messageReceived(json, methods=['GET', 'POST']):
         authors[i] = allMessages[i].author
         time[i] = allMessages[i].time
 
+    
     socketio.emit('message recieved', {
         "author" : authors,
         "content" : content,
         "time" : time,
-        "username" : current_user.username
-        }, callback=messageReceived)
+        "username" : current_user.username,
+        "session" : session.get("room")
+        }, room=session.get("room"),callback=messageReceived)
 
 @app.route("/message", methods=["POST", "GET"])
 @login_required
