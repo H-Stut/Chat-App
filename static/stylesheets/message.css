@@ -6,6 +6,7 @@
 body{
     height: 100%;
     background: #121212;
+    overflow: hidden;
 }
 .alert {
     padding: 20px;
@@ -14,7 +15,7 @@ body{
     margin-bottom: 15px;
     position: fixed;
     z-index: 20;
-  }
+}
   
   /* The close button */
 .closebtn {
@@ -39,6 +40,8 @@ body{
     height: 100vh;
     width: 100vh;
     border-radius: 5px 5px 0px 0px;
+    z-index: 1;
+    pointer-events:none;
 }
 
 .remove-room form{
@@ -47,6 +50,8 @@ body{
     bottom: 25px;
     left: 325px;
     width: 0px;
+    z-index: 20;
+    pointer-events:all;
 }
 .remove-room input{
     border-radius: 6px;
@@ -57,6 +62,7 @@ body{
     background-color: white;
     transition-duration: 0.4s;
     width:100px;
+    pointer-events:all;
 }
 .remove-room input:hover{
     background-color: #f44336;
@@ -68,6 +74,9 @@ body{
     bottom: -5px;
     left: 210px;
     width: 0px;
+    z-index: 20;
+    pointer-events:all;
+
 }
 .leave-room input{
     border-radius: 6px;
@@ -78,6 +87,7 @@ body{
     background-color: #4CAF50;
     transition-duration: 0.4s;
     width:100px;
+    pointer-events:all;
 }
 .leave-room input:hover{
     background-color: white;
@@ -92,7 +102,8 @@ body{
     height: 45px;
     background: #181818;
     border-radius: 5px 5px 0px 0px;
-    z-index: 1;
+    z-index: 2;
+    pointer-events:all;
 }
 .chat-head p {
     color: #2ecc71;
@@ -111,10 +122,11 @@ body{
 
 .chat-body{
     height: 91vh;
-    background-color: #121212;
     width: 100%;
     overflow: auto;
     z-index: 0;
+    background: rgba(0,0,0,0);
+    pointer-events:none;
 }
 
 .SendMess {
@@ -122,6 +134,9 @@ body{
     position: relative;
     bottom: -40px;
     padding: 20px;
+    z-index: 2;
+    pointer-events:all;
+
 }
 .SendMess input{
     width: inherit;
@@ -139,6 +154,8 @@ body{
     padding: 5px;
     bottom: 4px;
     transition-duration: 0.7s;
+    pointer-events:all;
+
 }
 .SendMess input:hover{
     border-color: royalblue;
@@ -153,6 +170,7 @@ body{
     top: 50px;
     width: 200px;
     padding: 5px 5px 5px 10px;
+    z-index: 1;
 }
 .msg-send h1{
     position: relative;
@@ -161,6 +179,8 @@ body{
     color: white;
     font-size: 0.8rem;
     word-wrap: break-word;
+    pointer-events:all;
+
 }
 .msg-send span{
     position: relative;
@@ -175,14 +195,203 @@ body{
     right: -75px;
     color: rgb(71, 71, 71);
     font-size: 0.7rem;
+    pointer-events:all;
+
 }
 .msg-insert-right{
     display:grid;
     align-items: left;
     justify-content: left;
+    pointer-events:all;
 }
 .msg-insert-left{
     display:grid;
     align-items: left;
     justify-content: left;
+    pointer-events:all;
+}
+.confirm-delete span{
+    width: 300px;
+    height: 100px;
+    margin: auto;
+    position: relative;
+    background-color: #181818;
+    border-radius: 10px;
+    font-family: 'Titillium Web', sans-serif;
+    color: white;
+    text-align: center;
+    border: none;
+    padding: 15px 32px;
+    text-decoration: none;
+    font-size: 16px;
+    font-weight: 600;
+    z-index: 4;
+}
+.confirm-delete-yes{
+    position: relative;
+    margin: auto;
+    left: -344px;
+    top: 50px;
+    width: 65px;
+    height: 20px;
+    color: white;
+    background-color: #f44336;
+    cursor: pointer;
+    border: none;
+    border-radius: 5px;
+    font-weight: 600;
+    z-index: 5;
+}
+.confirm-delete-no{
+    margin: auto;
+    position: relative;
+    left: -320px;
+    top: 50px;
+    width: 65px;
+    height: 20px;
+    color: white;
+    background-color: #4CAF50;
+    cursor: pointer;
+    border: none;
+    border-radius: 5px;
+    font-weight: 600;
+    z-index: 5;
+
+}
+.confirm-delete-box{
+    display: flex;
+    justify-content: center;
+    position: absolute;
+    top: 50%;
+    left: 40%
+}
+.confirm-leave span{
+    width: 300px;
+    height: 100px;
+    margin: auto;
+    position: relative;
+    background-color: #181818;
+    border-radius: 10px;
+    font-family: 'Titillium Web', sans-serif;
+    color: white;
+    text-align: center;
+    border: none;
+    padding: 15px 32px;
+    text-decoration: none;
+    font-size: 16px;
+    font-weight: 600;
+    z-index: 4;
+}
+.confirm-leave-yes{
+    position: relative;
+    margin: auto;
+    left: -344px;
+    top: 50px;
+    width: 65px;
+    height: 20px;
+    color: white;
+    background-color: #f44336;
+    cursor: pointer;
+    border: none;
+    border-radius: 5px;
+    font-weight: 600;
+    z-index: 5;
+}
+.confirm-leave-no{
+    margin: auto;
+    position: relative;
+    left: -320px;
+    top: 50px;
+    width: 65px;
+    height: 20px;
+    color: white;
+    background-color: #4CAF50;
+    cursor: pointer;
+    border: none;
+    border-radius: 5px;
+    font-weight: 600;
+    z-index: 5;
+
+}
+.confirm-leave-box{
+    display: flex;
+    justify-content: center;
+    position: absolute;
+    top: 50%;
+    left: 40%
+}
+.confirm-leave {
+    position: relative;
+}
+.confirm-delete {
+    position: relative;
+}
+.context-username{
+    width: 140px;
+    height: 200px;
+    position: relative;
+    background-color: #1d1c1c;
+    z-index: 100;
+    border-radius: 7px;
+}
+.copyUser{
+    width:inherit;
+    height: 30px;
+    background: #1D1C1C;
+    position: relative;
+    z-index: 200;
+    border-radius: 7px;
+}
+.copyUser input:hover{
+    background-color: rgb(75, 106, 197);
+    color: white;
+}
+.copyUser input{
+    background: none;
+    width: 130px;
+    height: 25px;
+    font-family: 'Titillium Web', sans-serif;
+    border-color: #1d1c1c;
+    color: rgb(160, 160, 160);
+    border-radius: 3px;
+    border-width: 0px;
+    position: relative;
+    text-align: left;
+    left: 5px;
+    padding-left: 5px;
+    top: 5px;
+}
+.line1{
+    position: relative;
+    top: 5px;
+    height: 1px;
+    width: 125px;
+    background-color: #444444;
+    z-index: 400;
+    left: 7.5px;
+    border-radius: 1px;
+}
+.owner{
+    width:inherit;
+    height: 30px;
+    background: #1D1C1C;
+    position: relative;
+    z-index: 200;
+    border-radius: 7px;
+    top: 5px;
+}
+.owner input{
+    background: none;
+    width: 130px;
+    height: 25px;
+    font-family: 'Titillium Web', sans-serif;
+    border-color: #1d1c1c;
+    color: rgb(58, 194, 164);
+    border-radius: 3px;
+    border-width: 0px;
+    position: relative;
+    text-align: left;
+    left: 5px;
+    top: 5px;
+    padding-left: 5px;
 }
