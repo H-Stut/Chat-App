@@ -62,8 +62,10 @@ def chat():
             room = request.form["name"]
             if len(room) > 32:
                 return render_template("chat.html", context="Room name cannot be longer that 32 characters", session=session, count=len(username), rooms=roomNames)
-            if len(password) > 64:
+            elif len(password) > 64:
                 return render_template("chat.html", context="Password cannot be longer that 64 characters", session=session, count=len(username), rooms=roomNames)
+            elif len(room) < 6:
+                return render_template("chat.html", context="Room name must be longer that 6 characters", session=session, count=len(username), rooms=roomNames)
 
             session["room"] = room
             session["username"] = current_user.username
@@ -87,6 +89,17 @@ def chat():
                 return redirect("/message")
         elif "joinS" in request.form:
             room = request.form["joinS"]
+            room2 = RoomModel.query.filter_by(room_name=room).first()
+            if room2 == None:
+                username = RoomModel.query.filter_by(username=current_user.username).all()
+                roomNames = ["a"] * len(username)
+                for i in range(0, len(username)):
+                    roomNames[i] = username[i].room_name
+                return redirect("/chat")
+
+            owner = room2.username
+            if (current_user.username != owner):
+                return redirect("/chat")
             session["room"] = room
             return redirect("/message")
         return render_template("chat.html", session=session)
@@ -130,8 +143,11 @@ def leaveRoom():
 
 @socketio.on("connected")
 def connected(json, methods=["GET", "POST"]):
+    
     join_room(session.get("room"))
     allMessages = MessageModel.query.filter_by(room=session.get("room")).all()
+    allRooms = RoomModel.query.filter_by(room_name=session.get("room")).all()
+    owner = allRooms[0].username
     content=[""] * len(allMessages)
     authors=[""] * len(allMessages)
     time=[""] * len(allMessages)
@@ -145,18 +161,20 @@ def connected(json, methods=["GET", "POST"]):
         "content" : content,
         "time" : time,
         "username" : current_user.username,
-        "session" : session.get("room")
+        "session" : session.get("room"),
+        "owner" : owner
         }, callback=messageReceived, room=request.sid)
 
 @socketio.on('message sent')
 def messageReceived(json, methods=['GET', 'POST']):
     json["username"] = current_user.username
 
-    print(session.get("room"))
     messages = MessageModel()
     messages.room = session.get("room")
     messages.author = current_user.username
     messages.content = json["message"]
+    if len(messages.content) == 0:
+        return
     now = datetime.now()
     current_time = now.strftime("%d %b %Y %I:%M %p")
     messages.time = current_time
@@ -164,14 +182,11 @@ def messageReceived(json, methods=['GET', 'POST']):
     db.session.add(messages)
     db.session.commit()
 
-    allMessages = MessageModel.query.filter_by(room=session.get("room")).all()
-    content=[""] * len(allMessages)
-    authors=[""] * len(allMessages)
-    time=[""] * len(allMessages)
-    for i in range(0, len(allMessages)):
-        content[i] = allMessages[i].content
-        authors[i] = allMessages[i].author
-        time[i] = allMessages[i].time
+    Messages = MessageModel.query.filter_by(room=session.get("room")).all()
+    Message = Messages[-1]
+    content=Message.content
+    authors=Message.author
+    time=Message.time
 
     
     socketio.emit('message recieved', {
