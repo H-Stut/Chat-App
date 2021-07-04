@@ -14,7 +14,7 @@
         <div class="alert" id="alert" hidden="true">
             <span class="closebtn" onclick="this.parentElement.style.display='none';">&times;</span>
             The host has deleted the room, you will be redirected in 7 seconds
-        </div> 
+        </div>
         <div class="chat-body" id="chat-body">
             <div class="msg-insert-left" id="msg-insert-left">
             </div>
@@ -44,140 +44,42 @@
             </div>
         </div>
         {% endif %}
-        
+
     </div>
 </div>
-<script type="text/javascript" charset="utf-8">
-    var w = $(window).width();
-    $('.chat-body').css('width', w);
-    $('.chat-head').css('width', w);
-    $('.chat-box').css('width', w);
-    var socket = io();
-    socket.on('connect', function () {
-        socket.emit('connected', { data: 'I\'m connected!' });
-    });
-
-    var form = $("#remove").on("submit", function (e) {
-        e.preventDefault();
-        socket.emit("remove");
-    })
-    var form = $("#leave").on("submit", function (e) {
-        e.preventDefault();
-        socket.emit("leave");
-    })
-    function sleep(ms) {
-        return new Promise(resolve => setTimeout(resolve, ms));
-    }
-    socket.on("redirect", async function (content) {
-        let url = content["url"]
-        if (content["alert"]) {
-            document.getElementById("alert").hidden = false;
-            for (let i = 6; i > 0; i--){
-                document.getElementById("alert").innerText = "The host has deleted the room, you will be redirected in " + i + " seconds";
-                await sleep(1000);
-            }
-        }
-        window.location.replace(url)
-    })
-
-    var form = $("#SendMess").on("submit", function (e) {
-        var w = $(window).width();
-        $('.chat-body').css('width', w);
-        $('.chat-head').css('width', w);
-        $('.chat-box').css('width', w);
-        e.preventDefault();
-        console.log(socket)
-        let user_input = $("input.message").val();
-        socket.emit("message sent", {
-            message: user_input,
-            username: "bruh",
-            socket: "fieryhenry2"
-        });
-        $("input.message").val("").focus();
-    });
-    socket.on("get", function (content) {
-        let content2 = content["content"];
-        let author = content["author"];
-        let time = content["time"];
-        let username = content["username"];
-        let session = content["session"];
-        let currentDiv = document.getElementById("msg-insert-right");
-        for (let i = 0; i < content2.length; i++) {
-            const div = document.createElement("div");
-            const contentEl = document.createElement("h1");
-            const timeEl = document.createElement("h2");
-            const usernameEl2 = document.createElement("span");
-
-            contentEl.textContent = content2[i];
-            timeEl.textContent = time[i];
-            usernameEl2.textContent = author[i];
-            usernameEl2.id = author[i];
-
-            div.append(usernameEl2);
-            div.removeAttribute("span");
-            div.append(timeEl);
-            div.append(usernameEl2);
-            div.append(contentEl);
-            div.className = "msg-send";
-
-            if (author[i] == username) {
-                currentDiv = document.getElementById("msg-insert-right");
-            }
-            else {
-                currentDiv = document.getElementById("msg-insert-left");
-            }
-            const body = document.getElementById("chat-body");
-            currentDiv.append(div);
-            timeEl.style.left += $("#" + author[i]).width() + 65;
-            console.log($("#" + author[i]).width() + 65)
-            body.scrollTop = body.scrollHeight;
-        }
-
-    });
-    socket.on("message recieved", function (content) {
-        console.log("das")
-        const div = document.createElement("div");
-        let content2 = content["content"];
-        let author = content["author"];
-        let time = content["time"];
-        let username = content["username"];
-        let session = content["session"]
-
-        let currentDiv = document.getElementById("msg-insert-left");
-
-        for (let i = 0; i < content2.length; i++) {
-            div.textContent = ""
-
-            const contentEl = document.createElement("h1");
-            const timeEl = document.createElement("h2");
-            const usernameEl = document.createElement("span");
-            usernameEl.id = "username";
-
-            contentEl.textContent = content2[i];
-            timeEl.textContent = time[i];
-
-            usernameEl.textContent = author[i];
-
-            div.append(usernameEl);
-            div.removeAttribute("span");
-            div.append(timeEl);
-            div.append(usernameEl);
-            div.append(contentEl);
-            div.className = "msg-send";
-
-            if (author[i] == username) {
-                currentDiv = document.getElementById("msg-insert-right");
-            }
-            else {
-                currentDiv = document.getElementById("msg-insert-left");
-            }
-            const body = document.getElementById("chat-body");
-            const top = document.getElementById("chat-head");
-            currentDiv.append(div);
-            timeEl.style.left += $("#username").width() + 65;
-            body.style.height = top.style.height;
-            body.scrollTop = body.scrollHeight;
-        }
-
-    });
-</script>
+<div class="confirm-delete-box" id="confirm-delete-box" hidden="true">
+    <div class="confirm-delete" id="confirm-delete">
+        <span>Are you sure you want to delete this room?</span>
+        <button class="confirm-delete-yes" id="confirm-delete-yes">Delete</button>
+        <button class="confirm-delete-no" id="confirm-delete-no" onclick="document.getElementById('confirm-leave').style.left='0px';
+                this.parentElement.style.display='none';">Keep
+        </button>
+    </div>
+</div>
+<div class="confirm-leave-box" hidden="true">
+    <div class="confirm-leave" id="confirm-leave">
+        <span>Are you sure you want to leave this room?</span>
+        <button class="confirm-leave-yes" id="confirm-leave-yes">Leave</button>
+        <button class="confirm-leave-no" id="confirm-leave-no" onclick="document.getElementById('confirm-delete').style.left='0px';
+                this.parentElement.style.display='none';">Stay</button>
+    </div>
+</div>
+</div>
+<div class="context-username" id="context-username" hidden="true">
+    <div class="copyUser" id="copyUser">
+        <form action="" method="POST">
+            <input type="submit" name="copyUser" value="Copy Username"
+            onclick="
+            var usern = document.getElementsByClassName('username');
+            var username = usernameh;
+            var promise = navigator.clipboard.writeText(username);" />
+        </form>
+    </div>
+    <div class="line1" id="line1"> </div>
+    <div class="owner" id="owner" hidden="true">
+        <form action="" method="POST">
+            <input type="submit" name="owner" value="Chat Room Owner"/>
+        </form>
+    </div>
+</div>
+<script type='application/javascript' src='./static/scripts/message.js'></script>
