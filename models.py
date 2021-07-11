@@ -12,7 +12,7 @@ class MessageModel(UserMixin, db.Model):
     author = db.Column(db.String(100))
     content = db.Column(db.String())
     room = db.Column(db.String())
-    time = db.Column(db.String())
+    time = db.Column(db.Integer())
         
 
 class RoomModel(UserMixin, db.Model):
@@ -34,7 +34,9 @@ class UserModel(UserMixin, db.Model):
  
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(100))
-    password_hash = db.Column(db.String()) 
+    password_hash = db.Column(db.String())
+    sid = db.Column(db.String())
+    room = db.Column(db.String())
     
     def set_password(self,password):
         self.password_hash = generate_password_hash(password)
