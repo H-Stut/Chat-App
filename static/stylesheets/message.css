@@ -10,14 +10,13 @@ body{
 }
 .alert {
     padding: 20px;
-    background-color: #f44336; /* Red */
+    background-color: #f44336; 
     color: white;
     margin-bottom: 15px;
     position: fixed;
     z-index: 20;
 }
   
-  /* The close button */
 .closebtn {
     margin-left: 15px;
     color: white;
@@ -29,7 +28,6 @@ body{
     transition: 0.3s;
 }
   
-/* When moving the mouse over the close button */
 .closebtn:hover {
     color: black;
 }
@@ -198,19 +196,13 @@ body{
     pointer-events:all;
 
 }
-.msg-insert-right{
+.msg-insert{
     display:grid;
     align-items: left;
     justify-content: left;
     pointer-events:all;
 }
-.msg-insert-left{
-    display:grid;
-    align-items: left;
-    justify-content: left;
-    pointer-events:all;
-}
-.confirm-delete span{
+.confirm-boxes div div span{
     width: 300px;
     height: 100px;
     margin: auto;
@@ -227,7 +219,7 @@ body{
     font-weight: 600;
     z-index: 4;
 }
-.confirm-delete-yes{
+.confirm-yes{
     position: relative;
     margin: auto;
     left: -344px;
@@ -242,7 +234,7 @@ body{
     font-weight: 600;
     z-index: 5;
 }
-.confirm-delete-no{
+.confirm-no{
     margin: auto;
     position: relative;
     left: -320px;
@@ -258,72 +250,14 @@ body{
     z-index: 5;
 
 }
-.confirm-delete-box{
+.confirm-boxes div{
     display: flex;
     justify-content: center;
     position: absolute;
     top: 50%;
     left: 40%
 }
-.confirm-leave span{
-    width: 300px;
-    height: 100px;
-    margin: auto;
-    position: relative;
-    background-color: #181818;
-    border-radius: 10px;
-    font-family: 'Titillium Web', sans-serif;
-    color: white;
-    text-align: center;
-    border: none;
-    padding: 15px 32px;
-    text-decoration: none;
-    font-size: 16px;
-    font-weight: 600;
-    z-index: 4;
-}
-.confirm-leave-yes{
-    position: relative;
-    margin: auto;
-    left: -344px;
-    top: 50px;
-    width: 65px;
-    height: 20px;
-    color: white;
-    background-color: #f44336;
-    cursor: pointer;
-    border: none;
-    border-radius: 5px;
-    font-weight: 600;
-    z-index: 5;
-}
-.confirm-leave-no{
-    margin: auto;
-    position: relative;
-    left: -320px;
-    top: 50px;
-    width: 65px;
-    height: 20px;
-    color: white;
-    background-color: #4CAF50;
-    cursor: pointer;
-    border: none;
-    border-radius: 5px;
-    font-weight: 600;
-    z-index: 5;
-
-}
-.confirm-leave-box{
-    display: flex;
-    justify-content: center;
-    position: absolute;
-    top: 50%;
-    left: 40%
-}
-.confirm-leave {
-    position: relative;
-}
-.confirm-delete {
+.confirm-boxes div div{
     position: relative;
 }
 .context-username{
@@ -342,9 +276,21 @@ body{
     z-index: 200;
     border-radius: 7px;
 }
-.copyUser input:hover{
+#copyUser input:hover{
     background-color: rgb(75, 106, 197);
     color: white;
+}
+#copyText input:hover{
+    background-color: rgb(75, 106, 197);
+    color: white;
+}
+#deleteMess input:hover{
+    background-color: rgb(194, 97, 97);
+    color: white;
+}
+#deleteMess {
+    position: relative;
+    top: 2px;
 }
 .copyUser input{
     background: none;
@@ -353,6 +299,36 @@ body{
     font-family: 'Titillium Web', sans-serif;
     border-color: #1d1c1c;
     color: rgb(160, 160, 160);
+    border-radius: 3px;
+    border-width: 0px;
+    position: relative;
+    text-align: left;
+    left: 5px;
+    padding-left: 5px;
+    top: 5px;
+}
+#deleteMess input{
+    color: rgb(182, 82, 82);
+}
+.kick{
+    width:inherit;
+    height: 30px;
+    background: #1D1C1C;
+    position: relative;
+    z-index: 200;
+    border-radius: 7px;
+}
+.kick input:hover{
+    background-color: rgb(194, 97, 97);
+    color: white;
+}
+.kick input{
+    background: none;
+    width: 130px;
+    height: 25px;
+    font-family: 'Titillium Web', sans-serif;
+    border-color: #1d1c1c;
+    color: rgb(182, 82, 82);
     border-radius: 3px;
     border-width: 0px;
     position: relative;
@@ -378,7 +354,7 @@ body{
     position: relative;
     z-index: 200;
     border-radius: 7px;
-    top: 5px;
+    top: 2px;
 }
 .owner input{
     background: none;
