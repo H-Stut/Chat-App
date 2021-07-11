@@ -7,7 +7,6 @@ from flask_limiter.util import get_remote_address
 from flask_socketio import SocketIO, join_room, leave_room, emit
 from flask_session import Session
 from datetime import datetime
-import time
  
 app = Flask(__name__)
 
@@ -110,10 +109,37 @@ def chat():
             roomNames[i] = username[i].room_name
         return render_template('chat.html', session=session, count=len(username), rooms=roomNames)
 
+@socketio.on("kick")
+def kick(json):
+    print("kick")
+    user = RoomModel.query.filter_by(room_name = session.get("room")).first()
+    if current_user.username != user.username:
+        print("not owner")
+        return
+    username = json["username"]
+    usertokick = UserModel.query.filter_by(username=username).first()
+    socketio.emit("user leave", {
+        "user" : usertokick.username
+    }, callback=leaveRoom, room=session["room"])
+    usertokick.room = ""
+    db.session.add(usertokick)
+    db.session.commit()
+    leave_room(room=session["room"], sid=usertokick.sid)
+    socketio.emit("redirect", {
+        "url" :"/chat",
+        "alert" : False
+    }, callback=kick, room=usertokick.sid)
+
+
 @socketio.on("remove")
 def removeRoom():
     user = RoomModel.query.filter_by(room_name = session.get("room")).all()
     message = MessageModel.query.filter_by(room = session.get("room")).all()
+    
+    
+    if current_user.username != user.username:
+        return
+
     db.session.delete(user[0])
     for i in range(0, len(message)):
         db.session.delete(message[i])
@@ -133,10 +159,15 @@ def removeRoom():
     session["room"] = None
 @socketio.on("leave")
 def leaveRoom():
+    usermondel = UserModel.query.filter_by(username=current_user.username)
+    usermondel.room = None
     socketio.emit("redirect", {
         "url" : "/chat",
         "alert" : False
-        }, callback=removeRoom, room=session.get("room"))
+    }, callback=leaveRoom, room=request.sid)
+    socketio.emit("user leave", {
+        "user" : current_user.username
+    }, callback=leaveRoom, room=session["room"])
 
     leave_room(session.get("room"))
     session["room"] = None
@@ -145,16 +176,35 @@ def leaveRoom():
 def connected(json, methods=["GET", "POST"]):
     
     join_room(session.get("room"))
+    User = UserModel.query.filter_by(username=current_user.username).first()
+    Userss = UserModel.query.filter_by(room=session["room"]).all()
+    User.sid = request.sid
+    User.room = session["room"]
+    db.session.add(User)
+    db.session.commit()
     allMessages = MessageModel.query.filter_by(room=session.get("room")).all()
     allRooms = RoomModel.query.filter_by(room_name=session.get("room")).all()
     owner = allRooms[0].username
     content=[""] * len(allMessages)
     authors=[""] * len(allMessages)
-    time=[""] * len(allMessages)
+    time=[0] * len(allMessages)
+    times=[""] * len(allMessages)
+    ids=[""] * len(allMessages)
+
+    timezone = json["timezone"]
+
     for i in range(0, len(allMessages)):
         content[i] = allMessages[i].content
         authors[i] = allMessages[i].author
-        time[i] = allMessages[i].time
+        time[i] = int(allMessages[i].time) /60
+        times[i] = datetime.utcfromtimestamp((time[i] + timezone *-1) * 60)
+        time[i] = times[i].strftime("%d %b %Y %I:%M %p")
+        ids[i] = allMessages[i].id
+
+        userarr = ["a"] * len(Userss)
+    for i in range(0, len(Userss)):
+        userarr[i] = Userss[i].username
+
 
     socketio.emit('get', {
         "author" : authors,
@@ -162,12 +212,37 @@ def connected(json, methods=["GET", "POST"]):
         "time" : time,
         "username" : current_user.username,
         "session" : session.get("room"),
-        "owner" : owner
+        "owner" : owner,
+        "users" : userarr,
+        "ids" : ids
         }, callback=messageReceived, room=request.sid)
+
+    socketio.emit("user join", {
+        "user" : current_user.username
+    }, callback=messageReceived, room=session["room"])
+
+@socketio.on("delete message")
+def delelteMessage(json):
+    id = json["id"]
+    messages = MessageModel.query.filter_by(id=id).first()
+    Rooms = RoomModel.query.filter_by(room_name=session["room"]).first()
+    if (current_user.username != messages.author and Rooms.username != current_user.username):
+        return
+    db.session.delete(messages)
+    db.session.commit()
+
+    socketio.emit("message deleted", {
+        "id" : id
+    }, callback=delelteMessage, room=session["room"])
 
 @socketio.on('message sent')
 def messageReceived(json, methods=['GET', 'POST']):
     json["username"] = current_user.username
+    timezone = json["timezone"]
+    test = datetime.now().timestamp() /60
+    
+    times = datetime.utcfromtimestamp((test + timezone *-1) * 60)
+    time = times.strftime("%d %b %Y %I:%M %p")
 
     messages = MessageModel()
     messages.room = session.get("room")
@@ -175,9 +250,8 @@ def messageReceived(json, methods=['GET', 'POST']):
     messages.content = json["message"]
     if len(messages.content) == 0:
         return
-    now = datetime.now()
-    current_time = now.strftime("%d %b %Y %I:%M %p")
-    messages.time = current_time
+    now = datetime.now().timestamp()
+    messages.time = now
 
     db.session.add(messages)
     db.session.commit()
@@ -186,7 +260,7 @@ def messageReceived(json, methods=['GET', 'POST']):
     Message = Messages[-1]
     content=Message.content
     authors=Message.author
-    time=Message.time
+    id=Message.id
 
     
     socketio.emit('message recieved', {
@@ -194,7 +268,8 @@ def messageReceived(json, methods=['GET', 'POST']):
         "content" : content,
         "time" : time,
         "username" : current_user.username,
-        "session" : session.get("room")
+        "session" : session.get("room"),
+        "id" : id
         }, room=session.get("room"),callback=messageReceived)
 
 @app.route("/message", methods=["POST", "GET"])
