@@ -16,9 +16,7 @@
             The host has deleted the room, you will be redirected in 7 seconds
         </div>
         <div class="chat-body" id="chat-body">
-            <div class="msg-insert-left" id="msg-insert-left">
-            </div>
-            <div class="msg-insert-right" id="msg-insert-right">
+            <div class="msg-insert" id="msg-insert">
             </div>
         </div>
         <div class="SendMess" id="SendMess">
@@ -47,38 +45,57 @@
 
     </div>
 </div>
-<div class="confirm-delete-box" id="confirm-delete-box" hidden="true">
-    <div class="confirm-delete" id="confirm-delete">
-        <span>Are you sure you want to delete this room?</span>
-        <button class="confirm-delete-yes" id="confirm-delete-yes">Delete</button>
-        <button class="confirm-delete-no" id="confirm-delete-no" onclick="document.getElementById('confirm-leave').style.left='0px';
-                this.parentElement.style.display='none';">Keep
-        </button>
+<div class="confirm-boxes" id="confirm-boxes">
+    <div class="confirm-delete-box" id="confirm-delete-box" hidden="true">
+        <div class="confirm-delete" id="confirm-delete">
+            <span>Are you sure you want to delete this room?</span>
+            <button class="confirm-yes" id="confirm-delete-yes">Delete</button>
+            <button class="confirm-no" id="confirm-delete-no" onclick="document.getElementById('confirm-leave').style.left='0px';
+                    this.parentElement.style.display='none';">Keep
+            </button>
+        </div>
     </div>
-</div>
-<div class="confirm-leave-box" hidden="true">
-    <div class="confirm-leave" id="confirm-leave">
-        <span>Are you sure you want to leave this room?</span>
-        <button class="confirm-leave-yes" id="confirm-leave-yes">Leave</button>
-        <button class="confirm-leave-no" id="confirm-leave-no" onclick="document.getElementById('confirm-delete').style.left='0px';
-                this.parentElement.style.display='none';">Stay</button>
+    <div class="confirm-leave-box" hidden="true">
+        <div class="confirm-leave" id="confirm-leave">
+            <span>Are you sure you want to leave this room?</span>
+            <button class="confirm-yes" id="confirm-leave-yes">Leave</button>
+            <button class="confirm-no" id="confirm-leave-no" onclick="document.getElementById('confirm-delete').style.left='0px';
+                    this.parentElement.style.display='none';">Stay</button>
+        </div>
     </div>
 </div>
 </div>
 <div class="context-username" id="context-username" hidden="true">
-    <div class="copyUser" id="copyUser">
+    <div class="copyUser" id="copyUser" hidden="true">
         <form action="" method="POST">
-            <input type="submit" name="copyUser" value="Copy Username"
-            onclick="
+            <input type="submit" name="copyUser" value="Copy Username" onclick="
             var usern = document.getElementsByClassName('username');
             var username = usernameh;
             var promise = navigator.clipboard.writeText(username);" />
         </form>
     </div>
+    <div class="copyUser" id="copyText" hidden="true">
+        <form action="" method="POST">
+            <input type="submit" name="copyText" value="Copy Text" onclick="
+            var usern = document.getElementsByClassName('content');
+            var promise = navigator.clipboard.writeText(content);" />
+        </form>
+    </div>
     <div class="line1" id="line1"> </div>
+    <div class="copyUser" id="deleteMess" hidden="true">
+        <form action="" method="POST">
+            <input type="submit" name="deleteMess" value="Delete Message" />
+        </form>
+    </div>
     <div class="owner" id="owner" hidden="true">
         <form action="" method="POST">
-            <input type="submit" name="owner" value="Chat Room Owner"/>
+            <input type="submit" name="owner" value="Chat Room Owner" />
+        </form>
+    </div>
+    <div class="line1" id="line1"></div>
+    <div class="kick" id="kick" hidden="true">
+        <form action="" method="POST">
+            <input type="submit" name="kick" value="Kick User" />
         </form>
     </div>
 </div>
