@@ -87,9 +87,8 @@ document.addEventListener("contextmenu", function (e) {
 });
 let usertokick = "";
 document.addEventListener("click", function (e) {
-    let contextmen = e.target.parentElement.parentElement.parentElement;
-
-    try{
+    try {
+        contextmen = e.target.parentElement.parentElement.parentElement;
         if (contextmen.className == "context-username" || contextmen.className == "") {
             return;
         }
@@ -98,11 +97,12 @@ document.addEventListener("click", function (e) {
         if (e.target == "context-username") {
             return;
         }
+        else {
+            document.getElementById("context-username").hidden = true;
+            return;
+        }
     }
     document.getElementById("context-username").hidden = true;
-
-
-    document.getElementById("context-username").hidden=true;
 })
 document.getElementById("confirm-leave").style.display = "none";
 document.getElementById("confirm-delete").style.display = "none";
@@ -116,32 +116,43 @@ changeWindowSize();
 window.onresize = changeWindowSize;
 var socket = io();
 socket.on('connect', function () {
-    socket.emit('connected', { 
-        "timezone" : new Date().getTimezoneOffset()
-     });
+    socket.emit('connected', {
+        "timezone": new Date().getTimezoneOffset()
+    });
+    let div = document.createElement("div");
+    let currentDiv = document.getElementById("users")
+    let text = document.createElement("p");
+    text.textContent = curruser;
+    div.append(text);
+    div.id = "user";
+    div.className = curruser
+    if (div.className == "undefined" || div.className == "") {
+        return;
+    }
+    currentDiv.append(div)
 });
 
 var form = $("#copyUser").on("submit", function (e) {
     e.preventDefault();
-    document.getElementById("context-username").hidden=true;
+    document.getElementById("context-username").hidden = true;
 })
 var form = $("#copyText").on("submit", function (e) {
     e.preventDefault();
-    document.getElementById("context-username").hidden=true;
+    document.getElementById("context-username").hidden = true;
 })
 var form = $("#deleteMess").on("submit", function (e) {
     e.preventDefault();
     socket.emit("delete message", {
         "id": id
     })
-    document.getElementById("context-username").hidden=true;
+    document.getElementById("context-username").hidden = true;
 })
 var form = $("#kick").on("submit", function (e) {
     e.preventDefault();
     socket.emit("kick", {
         "username": usertokick
     })
-    document.getElementById("context-username").hidden=true;
+    document.getElementById("context-username").hidden = true;
 })
 var form = $("#owner").on("submit", function (e) {
     e.preventDefault();
@@ -201,10 +212,13 @@ socket.on("user leave", function (content) {
     let user = content["user"];
     for (let i = 0; i < users.length; i++) {
         if (users[i] == user) {
-            users[i] = "";
+            let rem = document.getElementsByClassName(user)
+            rem[0].remove();
+            users.splice(i, 1);
         }
     }
 })
+
 socket.on("user join", function (content) {
     let user = content["user"];
     let found = false;
@@ -216,6 +230,17 @@ socket.on("user join", function (content) {
     }
     if (!found) {
         users.push(user);
+        let div = document.createElement("div");
+        let currentDiv = document.getElementById("users")
+        let text = document.createElement("p");
+        text.textContent = user;
+        div.append(text);
+        div.id = "user";
+        div.className = user
+        if (div.className == "undefined") {
+            return;
+        }
+        currentDiv.append(div)
     }
 })
 
@@ -232,7 +257,7 @@ var form = $("#SendMess").on("submit", function (e) {
     socket.emit("message sent", {
         "message": user_input,
         "username": "bruh",
-        "timezone" : new Date().getTimezoneOffset()
+        "timezone": new Date().getTimezoneOffset()
     });
     $("input.message").val("").focus();
 });
@@ -250,6 +275,17 @@ socket.on("get", function (content) {
 
     let currentDiv = document.getElementById("msg-insert");
     for (let i = 0; i < content2.length; i++) {
+        let div2 = document.createElement("div");
+        let currentDiv2 = document.getElementById("users")
+        let text = document.createElement("p");
+        text.textContent = users[i];
+        div2.append(text);
+        div2.id = "user";
+        div2.className = users[i];
+        if (div2.className != "undefined") {
+            currentDiv2.append(div2)
+        }
+
         const div = document.createElement("div");
         const contentEl = document.createElement("h1");
         const timeEl = document.createElement("h2");
