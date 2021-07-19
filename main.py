@@ -84,7 +84,7 @@ def chat():
                 user.set_room_password(password)
                 db.session.add(user)
                 db.session.commit()
-                print(username)
+                socketio.emit("connected")
                 return redirect("/message")
         elif "joinS" in request.form:
             room = request.form["joinS"]
@@ -133,14 +133,13 @@ def kick(json):
 
 @socketio.on("remove")
 def removeRoom():
-    user = RoomModel.query.filter_by(room_name = session.get("room")).all()
+    user = RoomModel.query.filter_by(room_name = session.get("room")).first()
     message = MessageModel.query.filter_by(room = session.get("room")).all()
-    
     
     if current_user.username != user.username:
         return
 
-    db.session.delete(user[0])
+    db.session.delete(user)
     for i in range(0, len(message)):
         db.session.delete(message[i])
     db.session.commit()
@@ -159,7 +158,8 @@ def removeRoom():
     session["room"] = None
 @socketio.on("leave")
 def leaveRoom():
-    usermondel = UserModel.query.filter_by(username=current_user.username)
+    test = UserModel.query.filter_by(username=current_user.username).first()
+    usermondel = UserModel.query.filter_by(username=current_user.username).first()
     usermondel.room = None
     socketio.emit("redirect", {
         "url" : "/chat",
@@ -171,6 +171,9 @@ def leaveRoom():
 
     leave_room(session.get("room"))
     session["room"] = None
+    db.session.delete(test)
+    db.session.add(usermondel)
+    db.session.commit()
 
 @socketio.on("connected")
 def connected(json, methods=["GET", "POST"]):
@@ -201,7 +204,8 @@ def connected(json, methods=["GET", "POST"]):
         time[i] = times[i].strftime("%d %b %Y %I:%M %p")
         ids[i] = allMessages[i].id
 
-        userarr = ["a"] * len(Userss)
+    userarr = ["a"] * len(Userss)
+
     for i in range(0, len(Userss)):
         userarr[i] = Userss[i].username
 
@@ -324,8 +328,6 @@ def message():
 
 @app.route('/login', methods = ['POST', 'GET'])
 def login():
-    if current_user.is_authenticated:
-        return redirect('/chat')
      
     if request.method == 'POST':
         username = request.form['username']
@@ -341,10 +343,7 @@ def login():
         return render_template('login.html')
  
 @app.route('/register', methods=['POST', 'GET'])
-def register():
-    if current_user.is_authenticated:
-        return redirect('/chat')
-     
+def register():     
     if request.method == 'POST':
         username = request.form['username']
         password = request.form['password']
@@ -354,12 +353,12 @@ def register():
             return render_template("register.html", context="Confirmation and password must be the same")
         elif len(password) < 6:
             return render_template("register.html", context="Password must be at least 6 characters")
-        elif len(password) > 64:
-            return render_template("register.html", context="Password cannot be longer than 64 characters")
+        elif len(password) > 32:
+            return render_template("register.html", context="Password cannot be longer than 32 characters")
         elif len(username) < 4:
             return render_template("register.html", context="Username must be at least 4 characters long")
-        elif len(username) > 32:
-            return render_template("register.html", context="Username must be less than 32 characters")
+        elif len(username) > 16:
+            return render_template("register.html", context="Username must be less than 16 characters")
         elif UserModel.query.filter_by(username=username).first():
             return render_template("register.html", context="This username is already in use")
              
