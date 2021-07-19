@@ -15,19 +15,17 @@
 <div class="formLogin">
     <form id="roomSelect" action="" method = "POST">
         <div class="options">
-            <input type="text" name="name" placeholder="Room Name">
-            <input type="password" name="password" placeholder="Room Password">
-            <input type="submit" name="create" value="Create Room">
-            <input type="submit" name="join" value="Join Room">
+            <input class="Input" type="text" name="name" placeholder="Room Name"></p>
+            <input class="Input" type="password" name="password" placeholder="Room Password"></p>
+            <input class="Submit" type="submit" name="create" value="Create Room"></p>
+            <input class="Submit" type="submit" name="join" value="Join Room"></p>
         </div>
     </form>
 </div>
 
 <div class="rooms">
-    <p>You currently have created {{count}} rooms:</p>
-    {% if count != 0: %}
-    <p>Click to join</p>
-    {%endif%}
+    <p>Rooms</p>
+    <div class="line"></div>
     {% for i in range(0, count): %}
     <form id="remRoom" action="" method="POST">
         <input type="submit" name="joinS" value={{rooms[i]}}>
