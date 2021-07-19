@@ -16,7 +16,41 @@ body{
     position: fixed;
     z-index: 20;
 }
-  
+.users {
+    position: absolute;
+    right: 30px;
+    top: 50px;
+    z-index: 4;
+}
+#user {
+    background: none;
+    border: none;
+    color: rgb(172, 172, 172);
+    font-family: "Titillium Web", sans-serif;
+    font-size: 1.1rem;
+    font-weight: 500;
+    position: relative;
+    height: 30px;
+    left: -2px;
+    top: 10px;
+    width: 250px;
+}
+#user:hover {
+    position: relative;
+    background: hsl(0, 0%, 19%);
+    border-radius: 5px;
+    width: 250px;
+    height: 30px;
+}
+#user p{
+    position: absolute;
+    left: 5px;
+    top: 4px;
+}
+.users {
+    color: rgb(172, 172, 172);
+    font-family: "Titillium Web", sans-serif;
+}
 .closebtn {
     margin-left: 15px;
     color: white;
