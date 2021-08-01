@@ -1,5 +1,6 @@
 <link href="static/stylesheets/login.css" rel="stylesheet" >
 <link rel="shortcut icon" href="{{ url_for('static', filename='favicon.ico') }}">
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
 
 <div class="formLogin">
     <form action="" method = "POST">
@@ -27,3 +28,29 @@
 <div class="IncorrectPass">
     <p>{{context}}</p>
 </div>
+
+<script>
+    var form = $(".formLogin").on("submit", function (e) {
+        let content = $("form").serializeArray();
+        let pass = content[1].value;
+        let confirmpass = content[2].value;
+        let username = content[0].value;
+
+        if (confirmpass != pass) {
+            $(".IncorrectPass").children()[0].textContent = "Confirmation and password must be the same";
+            e.preventDefault();
+            return;
+        }
+
+        else if (pass.length < 6 || pass.length > 32) {
+            $(".IncorrectPass").children()[0].textContent = "Password must be at least 6 characters and less than 32 characters long";
+            e.preventDefault();
+            return;
+        }
+        else if (username.length < 4 || username.length > 16) {
+            $(".IncorrectPass").children()[0].textContent = "Username must be at least 4 characters and less than 16 characters long";
+            e.preventDefault();
+            return;
+        }
+    });
+</script>
