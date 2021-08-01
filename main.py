@@ -1,3 +1,4 @@
+import re
 from flask import Flask,render_template,request,redirect, session
 from flask_login import login_required, current_user, login_user, logout_user
 from werkzeug import debug
@@ -7,6 +8,7 @@ from flask_limiter.util import get_remote_address
 from flask_socketio import SocketIO, join_room, leave_room, emit
 from flask_session import Session
 from datetime import datetime
+import math
  
 app = Flask(__name__)
 
@@ -25,7 +27,11 @@ socketio = SocketIO(app)
 @app.before_first_request
 def create_all():
     db.create_all()
-     
+
+@app.route("/")
+def root():
+    return redirect("/chat")
+
 @app.route('/chat', methods=["GET", "POST"])
 @login_required
 def chat():
@@ -84,7 +90,6 @@ def chat():
                 user.set_room_password(password)
                 db.session.add(user)
                 db.session.commit()
-                socketio.emit("connected")
                 return redirect("/message")
         elif "joinS" in request.form:
             room = request.form["joinS"]
@@ -175,6 +180,70 @@ def leaveRoom():
     db.session.add(usermondel)
     db.session.commit()
 
+
+@socketio.on("load")
+def load(json):
+    Userss = UserModel.query.filter_by(room=session["room"]).all()
+    allMessages = MessageModel.query.filter_by(room=session.get("room")).all()
+    allRooms = RoomModel.query.filter_by(room_name=session.get("room")).all()
+    owner = allRooms[0].username
+
+    section_to_load = json["section"] +1
+    base_length = 26
+
+    length_of_section = len(allMessages) % base_length
+    number_of_sections = math.ceil(len(allMessages) / base_length)
+
+    section_to_load = number_of_sections - section_to_load
+
+    if length_of_section == 0:
+        length_of_section = base_length
+    
+    section_start = (base_length * section_to_load) - (base_length - length_of_section)
+    section_end = section_start + base_length
+
+    if (section_to_load == 0):
+        base_length = length_of_section
+        section_start = 0
+        section_end = length_of_section
+
+    content=[""] * base_length
+    authors=[""] * base_length
+    time=[0] * base_length
+    times=[""] * base_length
+    ids=[""] * base_length
+
+    timezone = json["timezone"]
+    
+    j = 0
+
+    for i in range(section_start, section_end):
+        content[j] = allMessages[i].content
+        authors[j] = allMessages[i].author
+        time[j] = int(allMessages[i].time) /60
+        times[j] = datetime.utcfromtimestamp((time[j] + timezone *-1) * 60)
+        time[j] = times[j].strftime("%d %b %Y %I:%M %p")
+        ids[j] = allMessages[i].id
+        j+=1
+
+    userarr = ["a"] * len(Userss)
+
+    for i in range(0, len(Userss)):
+        userarr[i] = Userss[i].username
+
+    userarr = ["a"] * len(Userss)
+    socketio.emit('loadNew', {
+        "author" : authors,
+        "content" : content,
+        "time" : time,
+        "username" : current_user.username,
+        "session" : session.get("room"),
+        "owner" : owner,
+        "users" : userarr,
+        "ids" : ids,
+        "len" : number_of_sections
+        }, callback=messageReceived, room=request.sid)
+
 @socketio.on("connected")
 def connected(json, methods=["GET", "POST"]):
     
@@ -188,27 +257,43 @@ def connected(json, methods=["GET", "POST"]):
     allMessages = MessageModel.query.filter_by(room=session.get("room")).all()
     allRooms = RoomModel.query.filter_by(room_name=session.get("room")).all()
     owner = allRooms[0].username
-    content=[""] * len(allMessages)
-    authors=[""] * len(allMessages)
-    time=[0] * len(allMessages)
-    times=[""] * len(allMessages)
-    ids=[""] * len(allMessages)
+
+    base_length = 26
+
+    if len(allMessages) < base_length:
+        length = len(allMessages)
+    else:
+        length = base_length
+    content=[""] * length
+    authors=[""] * length
+    time=[0] * length
+    times=[""] * length
+    ids=[""] * length
 
     timezone = json["timezone"]
+    section = json["section"]
 
-    for i in range(0, len(allMessages)):
-        content[i] = allMessages[i].content
-        authors[i] = allMessages[i].author
-        time[i] = int(allMessages[i].time) /60
-        times[i] = datetime.utcfromtimestamp((time[i] + timezone *-1) * 60)
-        time[i] = times[i].strftime("%d %b %Y %I:%M %p")
-        ids[i] = allMessages[i].id
+    secLen = len(allMessages) - (base_length * (section +1))
+    secLen2 = len(allMessages) - (base_length * section)
+
+    if len(allMessages) < base_length:
+        secLen = 0
+        secLen2 = len(allMessages)
+    j = 0
+
+    for i in range(secLen, secLen2):
+        content[j] = allMessages[i].content
+        authors[j] = allMessages[i].author
+        time[j] = int(allMessages[i].time) /60
+        times[j] = datetime.utcfromtimestamp((time[j] + timezone *-1) * 60)
+        time[j] = times[j].strftime("%d %b %Y %I:%M %p")
+        ids[j] = allMessages[i].id
+        j+=1
 
     userarr = ["a"] * len(Userss)
 
     for i in range(0, len(Userss)):
         userarr[i] = Userss[i].username
-
 
     socketio.emit('get', {
         "author" : authors,
@@ -224,7 +309,6 @@ def connected(json, methods=["GET", "POST"]):
     socketio.emit("user join", {
         "user" : current_user.username
     }, callback=messageReceived, room=session["room"])
-
 @socketio.on("delete message")
 def delelteMessage(json):
     id = json["id"]
