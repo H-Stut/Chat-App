@@ -20,14 +20,14 @@ function getPosition(e) {
     }
 }
 var usernameh = "";
-let recursiveFunction = function (arr, x, start, end) {
+let search = function (arr, x, start, end) {
     if (start > end) return false;
     let mid = Math.floor((start + end) / 2);
     if (arr[mid] === x) return true;
     if (arr[mid] > x)
-        return recursiveFunction(arr, x, start, mid - 1);
+        return search(arr, x, start, mid - 1);
     else
-        return recursiveFunction(arr, x, mid + 1, end);
+        return search(arr, x, mid + 1, end);
 }
 content = "";
 
@@ -49,6 +49,8 @@ document.addEventListener("contextmenu", function (e) {
 
     context.hidden = false;
 
+    let target = null;
+
     if (e.target.className == "content") {
         content = e.target.textContent;
         document.getElementById("copyText").hidden = false;
@@ -57,32 +59,37 @@ document.addEventListener("contextmenu", function (e) {
             document.getElementById("deleteMess").hidden = false;
             id = e.target.parentElement.children[3].id;
         }
+        return;
+    }
+    else if (e.target.parentElement.id == "user") {
+        target = e.target.parentElement.className;
     }
     else if (e.target.className == "username") {
-        let kick = document.getElementById("kick");
-        document.getElementById("copyUser").hidden = false;
-        let owner2 = document.getElementById("owner");
-
-        var username = e.target.id;
-        usernameh = e.target.id;
-
-        if (username == owner) {
-            owner2.hidden = false;
-        }
-        else {
-            owner2.hidden = true;
-        }
-
-        if (recursiveFunction(users, username, 0, users.length - 1) && username != owner && curruser == owner) {
-            kick.hidden = false;
-            usertokick = e.target.id
-        }
-        else {
-            kick.hidden = true;
-        }
+        target = e.target.id;
     }
     else {
         context.hidden = true;
+    }
+    let kick = document.getElementById("kick");
+    document.getElementById("copyUser").hidden = false;
+    let owner2 = document.getElementById("owner");
+
+    var username = target;
+    usernameh = target;
+
+    if (username == owner) {
+        owner2.hidden = false;
+    }
+    else {
+        owner2.hidden = true;
+    }
+
+    if (search(users, username, 0, users.length - 1) && username != owner && curruser == owner) {
+        kick.hidden = false;
+        usertokick = target
+    }
+    else {
+        kick.hidden = true;
     }
 });
 let usertokick = "";
@@ -106,6 +113,110 @@ document.addEventListener("click", function (e) {
 })
 document.getElementById("confirm-leave").style.display = "none";
 document.getElementById("confirm-delete").style.display = "none";
+var socket = io();
+
+let currentSection = 0;
+let done = false;
+socket.on("loadNew", function(content) {
+    run = false;
+    currentSection++;
+    let content2 = content["content"];
+    let author = content["author"];
+    let time = content["time"];
+    let username = content["username"];
+    users = content["users"];
+    owner = content["owner"];
+    ids = content["ids"];
+    let lens = content["len"];
+    if (currentSection == lens) {
+        done = true;
+    }
+
+    curruser = username;
+
+    let firstDiv = null;
+
+    let currentDiv = document.getElementById("msg-insert");
+    for (let i = content2.length; i >= 0; i-=1) {
+        if (author[i] != undefined) {
+            const div = document.createElement("div");
+            const contentEl = document.createElement("h1");
+            const timeEl = document.createElement("h2");
+            const usernameEl2 = document.createElement("span");
+            const testID = document.createElement("div");
+
+            contentEl.textContent = content2[i];
+            timeEl.textContent = time[i];
+            usernameEl2.textContent = author[i];
+            usernameEl2.id = author[i];
+            usernameEl2.className = "username";
+            contentEl.className = "content";
+            testID.id = ids[i];
+            div.append(usernameEl2);
+            div.removeAttribute("span");
+            div.append(timeEl);
+            div.append(usernameEl2);
+            div.append(contentEl);
+            div.append(testID);
+            div.className = "msg-send";
+
+            if (i == content2.length -1 || i == content2.length) {
+                firstDiv = div;
+            }
+
+
+            currentDiv.prepend(div);
+            timeEl.style.left += $("#" + author[i]).width() + 65;
+        }
+    }
+    firstDiv.scrollIntoView();
+})
+
+function msgLoader() {
+    first++;
+    if (run == true || first == 1 || done) {
+        return;
+    }
+    let messages = document.getElementById("msg-insert").children;
+    let messagesArr = Array.from(messages);
+    let start = messagesArr.length -(26 *currentSection)
+    let bottom25 = messagesArr.slice(start, messagesArr.length -(26 *currentSection) +27);
+    if (isElementInViewport(bottom25[0].children[0])) {
+        if (run == true) {
+            return;
+        }
+        socket.emit('load', {
+            "section" : currentSection,
+            "timezone": new Date().getTimezoneOffset()
+        });
+        run = true;
+    }
+    else {
+        run = false;
+    }
+
+};
+let wrapper = document.getElementById("chat-body");
+wrapper.onscroll = msgLoader;
+let first = 0;
+
+setInterval(function(){ 
+    run = false;
+}, 1000);
+
+let run = false;
+
+function isElementInViewport(el) {
+    var rect = el.getBoundingClientRect();
+
+    return (
+        rect.top >= 0 &&
+        rect.left >= 0 &&
+        rect.bottom <= (window.innerHeight || document.documentElement.clientHeight) &&
+        rect.right <= (window.innerWidth || document.documentElement.clientWidth)
+    );
+}
+
 function changeWindowSize() {
     var w = $(window).width();
     $('.chat-body').css('width', w);
@@ -114,10 +225,10 @@ function changeWindowSize() {
 }
 changeWindowSize();
 window.onresize = changeWindowSize;
-var socket = io();
 socket.on('connect', function () {
     socket.emit('connected', {
-        "timezone": new Date().getTimezoneOffset()
+        "timezone": new Date().getTimezoneOffset(),
+        "section" : 0
     });
     let div = document.createElement("div");
     let currentDiv = document.getElementById("users")
@@ -196,7 +307,7 @@ function sleep(ms) {
 }
 socket.on("redirect", async function (content) {
     let url = content["url"]
-    if (curruser == owner) {
+    if (curruser != owner) {
         if (content["alert"]) {
             document.getElementById("alert").hidden = false;
             for (let i = 3; i > 0; i--) {
@@ -264,7 +375,9 @@ var form = $("#SendMess").on("submit", function (e) {
 var owner = "";
 var curruser = "";
 var ids = [];
+let match = 0
 socket.on("get", function (content) {
+    currentSection++;
     let content2 = content["content"];
     let author = content["author"];
     let time = content["time"];
@@ -272,11 +385,19 @@ socket.on("get", function (content) {
     users = content["users"];
     owner = content["owner"];
     ids = content["ids"];
+    curruser = username;
 
-    let currentDiv = document.getElementById("msg-insert");
-    for (let i = 0; i < content2.length; i++) {
-        let div2 = document.createElement("div");
+
+    for (let i = 0; i < users.length; i++) {
+        if (curruser == users[i]) {
+            match++;
+            if (match > 1) {
+                location.reload()
+                return;
+            }
+        }
         let currentDiv2 = document.getElementById("users")
+        let div2 = document.createElement("div");
         let text = document.createElement("p");
         text.textContent = users[i];
         div2.append(text);
@@ -285,7 +406,11 @@ socket.on("get", function (content) {
         if (div2.className != "undefined") {
             currentDiv2.append(div2)
         }
+    }
 
+
+    let currentDiv = document.getElementById("msg-insert");
+    for (let i = 0; i < content2.length; i++) {
         const div = document.createElement("div");
         const contentEl = document.createElement("h1");
         const timeEl = document.createElement("h2");
@@ -299,8 +424,6 @@ socket.on("get", function (content) {
         usernameEl2.className = "username";
         contentEl.className = "content";
         testID.id = ids[i];
-        curruser = username;
-
         div.append(usernameEl2);
         div.removeAttribute("span");
         div.append(timeEl);
