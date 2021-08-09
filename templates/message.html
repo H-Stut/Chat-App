@@ -4,7 +4,6 @@
     integrity="sha512-q/dWJ3kcmjBLU4Qc47E4A9kTB4m3wuTY7vkFJDTZKjTs8jhyGQnaUrxa0Ytd0ssMZhbNua9hE+E7Qv1j+DyZwA=="
     crossorigin="anonymous"></script>
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
-
 <div class="wrapper">
     <div class="chat-box">
         <div class="chat-head" id="chat-head">
@@ -98,10 +97,31 @@
             <input type="submit" name="kick" value="Kick User" />
         </form>
     </div>
+    <div class="kick" id="ban" hidden="true">
+        <form action="" method="POST">
+            <input type="submit" name="kick" value="Ban User" />
+        </form>
+    </div>
+    <div class="line1" id="line1" hidden="true"></div>
+    <div class="unban" id="unban" hidden="true">
+        <form action="" method="POST">
+            <input type="submit" name="unban" value="Unban User" />
+        </form>
+    </div>
 </div>
 <div class="users" id="users">
     <div class="user" id="UsersList">
         <p>Current Users</p>
+    </div>
+</div>
+<img id="arrow" class="arrow" hidden="true">
+<div class="bannedUsers" id="bannedUsers" hidden="true">
+    <button id="dropButton" hidden="true" onclick="dropDown()" class="dropbtn">Banned Users</button>
+    <div id="bannedUsersSearch" class="bannedUsersSearch">
+        <input type="text" placeholder="Search.." id="bannedSearchInput" class="bannedSearchInput" onkeyup="searchUsers()">
+        <div id="banList" class="banList">
+
+        </div> 
     </div>
 </div>
 <script type='application/javascript' src='./static/scripts/message.js'></script>
