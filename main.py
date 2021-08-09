@@ -2,7 +2,7 @@ import re
 from flask import Flask,render_template,request,redirect, session
 from flask_login import login_required, current_user, login_user, logout_user
 from werkzeug import debug
-from models import RoomModel, UserModel,db,login, MessageModel
+from models import BanModel, RoomModel, UserModel,db,login, MessageModel
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
 from flask_socketio import SocketIO, join_room, leave_room, emit
@@ -38,24 +38,27 @@ def chat():
     if request.method=="POST":
         if "join" in request.form:
             room = request.form["name"]
+            username = RoomModel.query.filter_by(username=current_user.username).all()
+            roomNames = ["a"] * len(username)
+            for i in range(0, len(username)):
+                roomNames[i] = username[i].room_name
+
+            bans = BanModel.query.filter_by(room=room).all()
+            for i in range(0, len(bans)):
+                if(bans[i].username == current_user.username):
+                    return render_template("chat.html", rooms=roomNames, context="You are banned from this room!")               
             password = request.form["password"]
             session["room"] = room
             session["username"] = current_user.username
-
-            username = RoomModel.query.filter_by(username=current_user.username).all()
-            roomNames = ["a"] * len(username)
-
-            for i in range(0, len(username)):
-                roomNames[i] = username[i].room_name
 
             name = RoomModel.query.filter_by(room_name=room).first()
             if name is not None and name.check_room_password(password):
                 return redirect("/message")
             elif name is None:
-                return render_template("chat.html", context="Room does not exist", session=session, count=len(username), rooms=roomNames)
+                return render_template("chat.html", context="Room does not exist", rooms=roomNames)
             elif name is None or not name.check_room_password(password):
-                return render_template("chat.html", context="Incorrect room name or password", session=session, count=len(username), rooms=roomNames)
-            return render_template("chat.html", session=session)
+                return render_template("chat.html", context="Incorrect room name or password", rooms=roomNames)
+            return render_template("chat.html")
         elif "create" in request.form:
             username = RoomModel.query.filter_by(username=current_user.username).all()
             roomNames = ["a"] * len(username)
@@ -66,11 +69,11 @@ def chat():
 
             room = request.form["name"]
             if len(room) > 32:
-                return render_template("chat.html", context="Room name cannot be longer that 32 characters", session=session, count=len(username), rooms=roomNames)
+                return render_template("chat.html", context="Room name cannot be longer that 32 characters",rooms=roomNames)
             elif len(password) > 64:
-                return render_template("chat.html", context="Password cannot be longer that 64 characters", session=session, count=len(username), rooms=roomNames)
+                return render_template("chat.html", context="Password cannot be longer that 64 characters",rooms=roomNames)
             elif len(room) < 6:
-                return render_template("chat.html", context="Room name must be longer that 6 characters", session=session, count=len(username), rooms=roomNames)
+                return render_template("chat.html", context="Room name must be longer that 6 characters", rooms=roomNames)
 
             session["room"] = room
             session["username"] = current_user.username
@@ -116,7 +119,6 @@ def chat():
 
 @socketio.on("kick")
 def kick(json):
-    print("kick")
     user = RoomModel.query.filter_by(room_name = session.get("room")).first()
     if current_user.username != user.username:
         print("not owner")
@@ -132,17 +134,92 @@ def kick(json):
     leave_room(room=session["room"], sid=usertokick.sid)
     socketio.emit("redirect", {
         "url" :"/chat",
-        "alert" : False
+        "alert" : False,
+        "text" : ""
     }, callback=kick, room=usertokick.sid)
 
+@socketio.on("unban")
+def unban(json):
+    user = RoomModel.query.filter_by(room_name = session.get("room")).first()
+    bans = BanModel.query.filter_by(room=session.get("room")).all()
+
+    if current_user.username != user.username:
+        return
+
+    for ban in bans:
+        if (json["username"] == ban.username):
+            db.session.delete(ban)
+            db.session.commit()
+    
+    socketio.emit("unbanned", {
+        "user" : json["username"]
+    }, callback=unban, room=request.sid)
+
+@socketio.on("ban")
+def ban(json):
+    user = RoomModel.query.filter_by(room_name = session.get("room")).first()
+    username = json["username"]
+    userRooms = UserModel.query.filter_by(room=session.get("room")).all()
+    found = False
+    for user2 in userRooms:
+        if(user2.username == username):
+            found=True
+    if (not found):
+        return
+    if current_user.username != user.username:
+        print(current_user.username)
+        print(user.username)
+        return
+
+    ban = BanModel()
+    ban.username = username
+    ban.room = session["room"]
+    db.session.add(ban)
+    db.session.commit()
+
+    usertokick = UserModel.query.filter_by(username=username).first()
+    messages = MessageModel.query.filter_by(author=username).all()
+    ids = []
+    for message in messages:
+        if message.room == session.get("room"):
+            ids.append(message.id)
+            db.session.delete(message)
+            db.session.commit()
+    socketio.emit("user leave", {
+        "user" : usertokick.username
+    }, callback=leaveRoom, room=session["room"])
+    socketio.emit("user ban", {
+        "user" : usertokick.username
+    }, callback=leave_room, room=request.sid)
+    socketio.emit("message deleted", {
+        "large" : True,
+        "id" : ids
+    }, callback=delelteMessage, room=session["room"])
+    
+    socketio.emit("redirect", {
+        "url" :"/chat",
+        "alert" : True,
+        "text" : "You have been banned from the room, "
+    }, callback=kick, room=usertokick.sid)
+
+    leave_room(room=session["room"], sid=usertokick.sid)
+
+    usertokick.room = ""
+    db.session.add(usertokick)
+    db.session.commit()
 
 @socketio.on("remove")
 def removeRoom():
     user = RoomModel.query.filter_by(room_name = session.get("room")).first()
     message = MessageModel.query.filter_by(room = session.get("room")).all()
-    
+    bans = BanModel.query.filter_by(room=session.get("room")).all()
+
     if current_user.username != user.username:
         return
+
+    for ban in bans:
+        db.session.delete(ban)
+        db.session.commit()
 
     db.session.delete(user)
     for i in range(0, len(message)):
@@ -156,7 +233,8 @@ def removeRoom():
 
     socketio.emit("redirect", {
         "url" : "/chat",
-        "alert" : True
+        "alert" : True,
+        "text" : "The host has deleted the room, "
         }, callback=removeRoom, room=session.get("room"))
 
     leave_room(session.get("room"))
@@ -246,8 +324,6 @@ def load(json):
 
 @socketio.on("connected")
 def connected(json, methods=["GET", "POST"]):
-    
-    join_room(session.get("room"))
     User = UserModel.query.filter_by(username=current_user.username).first()
     Userss = UserModel.query.filter_by(room=session["room"]).all()
     User.sid = request.sid
@@ -256,6 +332,16 @@ def connected(json, methods=["GET", "POST"]):
     db.session.commit()
     allMessages = MessageModel.query.filter_by(room=session.get("room")).all()
     allRooms = RoomModel.query.filter_by(room_name=session.get("room")).all()
+    bans = BanModel.query.filter_by(room=session.get("room")).all()
+    for i in range(0, len(bans)):
+        if(bans[i].username == current_user.username):
+            socketio.emit("redirect", {
+            "url" : "/chat",
+            "alert" : False,
+            "text" : "The host has deleted the room, "
+            }, callback=removeRoom, room=request.sid)
+        
+    join_room(session.get("room"))
     owner = allRooms[0].username
 
     base_length = 26
@@ -291,6 +377,10 @@ def connected(json, methods=["GET", "POST"]):
         j+=1
 
     userarr = ["a"] * len(Userss)
+    banList = []
+    if (current_user.username == owner):
+        for ban in bans:
+            banList.append(ban.username)
 
     for i in range(0, len(Userss)):
         userarr[i] = Userss[i].username
@@ -303,7 +393,8 @@ def connected(json, methods=["GET", "POST"]):
         "session" : session.get("room"),
         "owner" : owner,
         "users" : userarr,
-        "ids" : ids
+        "ids" : ids,
+        "bans" : banList
         }, callback=messageReceived, room=request.sid)
 
     socketio.emit("user join", {
@@ -320,6 +411,7 @@ def delelteMessage(json):
     db.session.commit()
 
     socketio.emit("message deleted", {
+        "large" : False,
         "id" : id
     }, callback=delelteMessage, room=session["room"])
 
@@ -387,23 +479,6 @@ def message():
         else:
             return render_template("message.html", session=session, admin=False)
     else:
-        if "rem" in request.form:
-            user = RoomModel.query.filter_by(room_name = session.get("room")).all()
-            message = MessageModel.query.filter_by(room = session.get("room")).all()
-            db.session.delete(user[0])
-            for i in range(0, len(message)):
-                db.session.delete(message[i])
-            db.session.commit()
-
-            username = RoomModel.query.filter_by(username=current_user.username).all()
-            roomNames = ["a"] * len(username)
-
-            for i in range(0, len(username)):
-                roomNames[i] = username[i].room_name
-
-            session["room"] = None
-
-            return redirect("/chat")
         if "leave" in request.form:
             session["room"] = None
             return redirect("/chat")
