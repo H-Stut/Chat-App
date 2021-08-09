@@ -28,6 +28,12 @@ class RoomModel(UserMixin, db.Model):
 
     def check_room_password(self, password):
         return check_password_hash(self.room_password, password)
+class BanModel(UserMixin, db.Model):
+    __tablename__ = "bans"
+
+    room = db.Column(db.String())
+    username = db.Column(db.String())
+    id = db.Column(db.Integer, primary_key=True)
 
 class UserModel(UserMixin, db.Model):
     __tablename__ = 'users'
