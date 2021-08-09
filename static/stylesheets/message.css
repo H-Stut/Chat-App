@@ -344,6 +344,96 @@ body{
 #deleteMess input{
     color: rgb(182, 82, 82);
 }
+.arrow {
+    scale: 0.08;
+    position: absolute;
+    z-index: 102;
+    right: 180px;
+    top: -187px;
+    display: inline-block;
+    pointer-events: none;
+}
+.bannedUsers {
+    position: absolute;
+    z-index: 1;
+    padding-left: 10px;    
+    right: 400px;
+    top: 50px;
+    display: inline-block;
+}
+.bannedUsersSearch {
+    display:none;
+    position: relative;
+    z-index: 1;
+}
+.show {
+    display: block;
+}
+.banList {
+    border: 3px solid rgb(0, 177, 147);
+    border-top: none;
+    background-color: hsl(0, 0%, 19%);
+    color: rgb(196, 196, 196);
+    border-bottom-right-radius: 5px;
+    border-bottom-left-radius: 5px;
+    padding-left: 3px;
+    padding-bottom: 2px;
+    padding-top: 2px;
+}
+.dropbtn {
+    width: 200px;
+    background-color: hsl(0, 0%, 19%);
+    padding: 5px;
+    cursor: pointer;
+    font-size: 16px;
+    text-align: left;
+    color: rgb(196, 196, 196);
+    border: 3px solid rgb(0, 177, 147);
+    border-top-left-radius: 10px;
+    border-top-right-radius: 10px;
+}
+.bannedSearchInput {
+    box-sizing: border-box;
+    font-size: 16px;
+    color: rgb(196, 196, 196);
+    border:none;
+    border: 3px solid rgb(0, 177, 147);
+    background-color: hsl(0, 0%, 19%);
+    width: 200px;
+    border-top: none;
+}
+.bannedUsersSearch input{
+    display: block;
+    text-decoration: none;
+    padding: 6px 8px;
+}
+.unban {
+    width:inherit;
+    height: 30px;
+    background: #1D1C1C;
+    position: relative;
+    z-index: 200;
+    border-radius: 7px;
+}
+.unban input:hover{
+    background-color: rgb(152, 194, 97);
+    color: black;
+}
+.unban input{
+    background: none;
+    width: 130px;
+    height: 25px;
+    font-family: 'Titillium Web', sans-serif;
+    border-color: #1d1c1c;
+    color: rgb(127, 182, 82);
+    border-radius: 3px;
+    border-width: 0px;
+    position: relative;
+    text-align: left;
+    left: 5px;
+    padding-left: 5px;
+    top: 5px;
+}
 .kick{
     width:inherit;
     height: 30px;
@@ -370,6 +460,15 @@ body{
     left: 5px;
     padding-left: 5px;
     top: 5px;
+}
+.line2{
+    position: relative;
+    height: 2px;
+    width: 180px;
+    background-color: #5c5c5c;
+    z-index: 400;
+    top: 2px;
+    border-radius: 1px;
 }
 .line1{
     position: relative;
