@@ -57,19 +57,16 @@ body {
     font-family: 'Titillium Web', sans-serif;
     z-index: 5;
 }
-
-
 .IncorrectPass {
-    position: absolute;
-    top: 250px;
-    left: 130px;
+    position: relative;
+    top: 85px;
+    left: 340px;
     color: rgb(235, 85, 85);
     font-family: "Titillium Web", sans-serif;
 }
 .IncorrectPass p {
     font: bold 1.2rem sans-serif;
-    text-align: center;
-    z-index: inherit;
+    text-align: left;
 }
 .Submit {
     background: rgb(44, 145, 60);
