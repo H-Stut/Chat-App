@@ -1,3 +1,24 @@
+function dropDown() {
+    if(curruser == owner) {
+        document.getElementById("bannedUsersSearch").classList.toggle("show");
+    }
+}
+function filterFunction() {
+    var input, filter,a, i;
+    input = document.getElementById("bannedSearchInput");
+    filter = input.value.toUpperCase();
+    div = document.getElementById("banList");
+    p = div.getElementsByTagName("p");
+    for (i = 0; i < p.length; i++) {
+      txtValue = p[i].textContent || p[i].innerText;
+      if (txtValue.toUpperCase().indexOf(filter) > -1) {
+        p[i].style.display = "";
+      } else {
+        p[i].style.display = "none";
+      }
+    }
+  }
+
 function getPosition(e) {
     var posx = 0;
     var posy = 0;
@@ -32,7 +53,7 @@ let search = function (arr, x, start, end) {
 content = "";
 
 let id = "";
-
+let usertounban = "";
 document.addEventListener("contextmenu", function (e) {
     e.preventDefault();
     let context = document.getElementById("context-username");
@@ -67,10 +88,19 @@ document.addEventListener("contextmenu", function (e) {
     else if (e.target.className == "username") {
         target = e.target.id;
     }
+    else if (e.target.className == "show") {
+        target = e.target.id;
+        let unban = document.getElementById("unban");
+        document.getElementById("copyUser").hidden = false;
+        unban.hidden = false;
+        usertounban = target;
+        return;
+    }
     else {
         context.hidden = true;
     }
     let kick = document.getElementById("kick");
+    let ban = document.getElementById("ban");
     document.getElementById("copyUser").hidden = false;
     let owner2 = document.getElementById("owner");
 
@@ -83,7 +113,13 @@ document.addEventListener("contextmenu", function (e) {
     else {
         owner2.hidden = true;
     }
-
+    if (curruser == owner && target !=curruser) {
+        ban.hidden = false;
+        usertokick = target;
+    }
+    else {
+        ban.hidden = true;
+    }
     if (search(users, username, 0, users.length - 1) && username != owner && curruser == owner) {
         kick.hidden = false;
         usertokick = target
@@ -265,6 +301,21 @@ var form = $("#kick").on("submit", function (e) {
     })
     document.getElementById("context-username").hidden = true;
 })
+var form = $("#ban").on("submit", function (e) {
+    e.preventDefault();
+    socket.emit("ban", {
+        "username": usertokick
+    })
+    document.getElementById("context-username").hidden = true;
+})
+var form = $("#unban").on("submit", function (e) {
+    e.preventDefault();
+    usertounban = usertounban.trimStart();
+    socket.emit("unban", {
+        "username": usertounban
+    })
+    document.getElementById("context-username").hidden = true;
+})
 var form = $("#owner").on("submit", function (e) {
     e.preventDefault();
 })
@@ -305,13 +356,16 @@ var form = $("#confirm-delete-yes").on("click", function (e) {
 function sleep(ms) {
     return new Promise(resolve => setTimeout(resolve, ms));
 }
+let canMessage = true;
 socket.on("redirect", async function (content) {
-    let url = content["url"]
+    canMessage = false;
+    let url = content["url"];
+    let text = content["text"];
     if (curruser != owner) {
         if (content["alert"]) {
             document.getElementById("alert").hidden = false;
             for (let i = 3; i > 0; i--) {
-                document.getElementById("alert").innerText = "The host has deleted the room, you will be redirected in " + i + " seconds";
+                document.getElementById("alert").innerText = text + "you will be redirected in " + i + " seconds";
                 await sleep(1000);
             }
         }
@@ -320,6 +374,9 @@ socket.on("redirect", async function (content) {
 })
 let users = [];
 socket.on("user leave", function (content) {
+    if (!canMessage) {
+        return;
+    }
     let user = content["user"];
     for (let i = 0; i < users.length; i++) {
         if (users[i] == user) {
@@ -331,6 +388,9 @@ socket.on("user leave", function (content) {
 })
 
 socket.on("user join", function (content) {
+    if (!canMessage) {
+        return;
+    }
     let user = content["user"];
     let found = false;
     for (let i = 0; i < users.length; i++) {
@@ -356,11 +416,14 @@ socket.on("user join", function (content) {
 })
 
 var form = $("#SendMess").on("submit", function (e) {
+    e.preventDefault();
+    if (!canMessage) {
+        return;
+    }
     var w = $(window).width();
     $('.chat-body').css('width', w);
     $('.chat-head').css('width', w);
     $('.chat-box').css('width', w);
-    e.preventDefault();
     let user_input = $("input.message").val();
     if (user_input.length == 0) {
         return;
@@ -376,17 +439,52 @@ var owner = "";
 var curruser = "";
 var ids = [];
 let match = 0
+socket.on("user ban", function(content) {
+    let banDiv = document.getElementById("banList");
+    let toReplace = document.createElement("p");
+    toReplace.id = " " + content["user"];
+    toReplace.className = "show";
+    toReplace.innerText = content["user"];
+    banDiv.appendChild(toReplace);
+})
+socket.on("unbanned", function(content) {
+    let classname = document.getElementsByClassName("show");
+    content["user"] = " " + content["user"];
+    for (let i = 0; i < classname.length; i++) {
+        const name = classname[i];
+        if (content["user"] == name.id) {
+            name.remove();
+        }
+        
+    }
+});
 socket.on("get", function (content) {
     currentSection++;
     let content2 = content["content"];
     let author = content["author"];
     let time = content["time"];
+    let bans = content["bans"];
     let username = content["username"];
     users = content["users"];
     owner = content["owner"];
     ids = content["ids"];
     curruser = username;
 
+    for (let i = 0; i < bans.length; i++) {
+        const ban = bans[i];
+        let banDiv = document.getElementById("banList");
+        let line = document.createElement("div");
+        line.id = "line2";
+        line.className = "line2";
+        let toReplace = document.createElement("p");
+        toReplace.id = " " + ban;
+        toReplace.className = "show";
+        toReplace.innerText = ban;
+        banDiv.appendChild(toReplace);
+        if (i != bans.length-1) {
+            banDiv.appendChild(line);
+        }
+    }
 
     for (let i = 0; i < users.length; i++) {
         if (curruser == users[i]) {
@@ -437,17 +535,39 @@ socket.on("get", function (content) {
         timeEl.style.left += $("#" + author[i]).width() + 65;
         body.scrollTop = body.scrollHeight;
     }
+    if (curruser == owner) {
+        document.getElementById("bannedUsers").hidden = false;
+        document.getElementById("dropButton").hidden = false;
+        document.getElementById("arrow").hidden=false;
+        document.getElementById("arrow").src="static/arrow.png"
+    }
 
 });
 
 socket.on("message deleted", function (content) {
-    let id2 = content["id"];
-    let usern = document.getElementById(id2);
-    let div = usern.parentElement;
-    div.remove();
+    if (!canMessage) {
+        return;
+    }
+    if (content["large"]) {
+        content["id"].forEach(id => {
+            let usern = document.getElementById(id);
+            let div = usern.parentElement;
+            div.remove();
+        });
+    }
+    else {
+        let id2 = content["id"];
+        let usern = document.getElementById(id2);
+        let div = usern.parentElement;
+        div.remove();
+    }
+
 })
 
 socket.on("message recieved", function (content) {
+    if (!canMessage) {
+        return;
+    }
     const div = document.createElement("div");
     let content2 = content["content"];
     let author = content["author"];
