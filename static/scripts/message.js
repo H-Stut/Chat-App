@@ -1,24 +1,58 @@
 function dropDown() {
-    if(curruser == owner) {
+    if (curruser == owner) {
         document.getElementById("bannedUsersSearch").classList.toggle("show");
+        var div = document.getElementById("arrow1");
+        var div2 = document.getElementById("arrow2");
+        let deg = getRotationAngle(div);
+        let deg2 = getRotationAngle(div2);
+        deg+= 90;
+        deg2+= 90;
+        div.style.transform = "rotate(" + deg + "deg)"
+        div2.style.transform = "rotate(" + deg2 + "deg)"
     }
 }
+
+function getRotationAngle(target) 
+{
+  const obj = window.getComputedStyle(target, null);
+  const matrix = obj.getPropertyValue('-webkit-transform') || 
+    obj.getPropertyValue('-moz-transform') ||
+    obj.getPropertyValue('-ms-transform') ||
+    obj.getPropertyValue('-o-transform') ||
+    obj.getPropertyValue('transform');
+
+  let angle = 0; 
+
+  if (matrix !== 'none') 
+  {
+    const values = matrix.split('(')[1].split(')')[0].split(',');
+    const a = values[0];
+    const b = values[1];
+    angle = Math.round(Math.atan2(b, a) * (180/Math.PI));
+  } 
+
+  return (angle < 0) ? angle +=360 : angle;
+}
+
+
+// example
 function filterFunction() {
-    var input, filter,a, i;
+    var input, filter, ul, li, a, i;
     input = document.getElementById("bannedSearchInput");
     filter = input.value.toUpperCase();
-    div = document.getElementById("banList");
-    p = div.getElementsByTagName("p");
-    for (i = 0; i < p.length; i++) {
-      txtValue = p[i].textContent || p[i].innerText;
-      if (txtValue.toUpperCase().indexOf(filter) > -1) {
-        p[i].style.display = "";
-      } else {
-        p[i].style.display = "none";
-      }
+    div = document.getElementById("bannedUsersSearch");
+    a = div.getElementsByClassName("show");
+    for (i = 0; i < a.length; i++) {
+        txtValue = a[i].textContent || a[i].innerText;
+        txtValue = txtValue.toUpperCase();
+        if (txtValue.search(filter) == 0) {
+            a[i].style.display = "";
+        }
+        else {
+            a[i].style.display = "none";
+        }
     }
-  }
-
+}
 function getPosition(e) {
     var posx = 0;
     var posy = 0;
@@ -80,6 +114,10 @@ document.addEventListener("contextmenu", function (e) {
             document.getElementById("deleteMess").hidden = false;
             id = e.target.parentElement.children[3].id;
         }
+        if(e.target.parentElement.children[1].id == curruser) {
+            document.getElementById("editMes").hidden = false;
+            id = e.target.parentElement.children[3].id;
+        }
         return;
     }
     else if (e.target.parentElement.id == "user") {
@@ -113,7 +151,7 @@ document.addEventListener("contextmenu", function (e) {
     else {
         owner2.hidden = true;
     }
-    if (curruser == owner && target !=curruser) {
+    if (curruser == owner && target != curruser) {
         ban.hidden = false;
         usertokick = target;
     }
@@ -153,7 +191,7 @@ var socket = io();
 
 let currentSection = 0;
 let done = false;
-socket.on("loadNew", function(content) {
+socket.on("loadNew", function (content) {
     run = false;
     currentSection++;
     let content2 = content["content"];
@@ -173,7 +211,7 @@ socket.on("loadNew", function(content) {
     let firstDiv = null;
 
     let currentDiv = document.getElementById("msg-insert");
-    for (let i = content2.length; i >= 0; i-=1) {
+    for (let i = content2.length; i >= 0; i -= 1) {
         if (author[i] != undefined) {
             const div = document.createElement("div");
             const contentEl = document.createElement("h1");
@@ -196,7 +234,7 @@ socket.on("loadNew", function(content) {
             div.append(testID);
             div.className = "msg-send";
 
-            if (i == content2.length -1 || i == content2.length) {
+            if (i == content2.length - 1 || i == content2.length) {
                 firstDiv = div;
             }
 
@@ -215,14 +253,20 @@ function msgLoader() {
     }
     let messages = document.getElementById("msg-insert").children;
     let messagesArr = Array.from(messages);
-    let start = messagesArr.length -(26 *currentSection)
-    let bottom25 = messagesArr.slice(start, messagesArr.length -(26 *currentSection) +27);
+    if (messagesArr.length < 26) {
+        return;
+    }
+    if (messagesArr.length * currentSection > 26 * currentSection) {
+        return;
+    }
+    let start = messagesArr.length - (26 * currentSection)
+    let bottom25 = messagesArr.slice(start, messagesArr.length - (26 * currentSection) + 27);
     if (isElementInViewport(bottom25[0].children[0])) {
         if (run == true) {
             return;
         }
         socket.emit('load', {
-            "section" : currentSection,
+            "section": currentSection,
             "timezone": new Date().getTimezoneOffset()
         });
         run = true;
@@ -236,7 +280,7 @@ let wrapper = document.getElementById("chat-body");
 wrapper.onscroll = msgLoader;
 let first = 0;
 
-setInterval(function(){ 
+setInterval(function () {
     run = false;
 }, 1000);
 
@@ -264,7 +308,7 @@ window.onresize = changeWindowSize;
 socket.on('connect', function () {
     socket.emit('connected', {
         "timezone": new Date().getTimezoneOffset(),
-        "section" : 0
+        "section": 0
     });
     let div = document.createElement("div");
     let currentDiv = document.getElementById("users")
@@ -294,6 +338,100 @@ var form = $("#deleteMess").on("submit", function (e) {
     })
     document.getElementById("context-username").hidden = true;
 })
+let temp;
+let new2;
+var form = $("#editMes").on("submit", function (e) {
+    e.preventDefault();
+
+    document.getElementById("context-username").hidden = true;
+    let div = document.getElementById(id);
+    let children = div.parentElement.children;
+
+    temp = children[2];
+
+    let d = document.createElement("div");
+    d.id = "editText";
+    d.className = "content";
+    d.innerHTML = children[2].innerHTML;
+    d.setAttribute("contentEditable", "true");
+
+    let h3 = document.createElement("h3");
+    h3.id = "charCount";
+    h3.className = "charCount";
+    h3.textContent = temp.textContent.length + "/2000";
+    h3.setAttribute("contentEditable", "false");
+
+    newText = temp.textContent;
+
+    children[2].parentNode.replaceChild(d, children[2]);
+    children[2].parentNode.appendChild(h3);
+
+    d.focus();
+
+    new2 = d;
+
+    document.getElementById("editText").onkeydown = onKeyDown;
+    document.getElementById("editText").onkeyup = onKeyUp;
+})
+let newText = "";
+document.onkeydown = onKeyDown2;
+function onKeyDown2(e) {
+    let charCount = document.getElementById("charCount");
+    if (temp == undefined){
+        return;
+    }
+    try{
+        if (e.key == "Escape") {
+            new2.parentElement.replaceChild(temp, new2);
+            charCount.remove();
+        }
+    }
+    catch {
+
+    }
+
+}
+function onKeyUp(e) {
+    let charCount = document.getElementById("charCount");
+    charCount.textContent = e.target.textContent.length + "/2000";
+    if (e.target.textContent.length > 2000) {
+        charCount.style.color = "red";
+    }
+    else {
+        charCount.style.color = "white";
+    }
+}
+function onKeyDown(e) {
+    let charCount = document.getElementById("charCount");
+    charCount.textContent = e.target.textContent.length + "/2000";
+    if (e.target.textContent.length > 2000) {
+        charCount.style.color = "red";
+    }
+    else {
+        charCount.style.color = "white";
+    }
+    if (e.key == "Enter" && !e.shiftKey) {
+        newText = e.target.textContent;
+        e.preventDefault();
+        if (newText.length == 0) {
+            return;
+        }
+        if (newText.length > 2000) {
+            return;
+        }
+        temp.textContent = newText;
+        e.target.parentElement.replaceChild(temp, e.target);
+        charCount.remove();
+        socket.emit("edit message", {
+            "id" : id,
+            "text" : newText
+        })
+    }
+    else if(e.key == "Escape") {
+        e.target.parentElement.replaceChild(temp, e.target);
+        charCount.remove();
+    }
+}
 var form = $("#kick").on("submit", function (e) {
     e.preventDefault();
     socket.emit("kick", {
@@ -439,7 +577,7 @@ var owner = "";
 var curruser = "";
 var ids = [];
 let match = 0
-socket.on("user ban", function(content) {
+socket.on("user ban", function (content) {
     let banDiv = document.getElementById("banList");
     let toReplace = document.createElement("p");
     toReplace.id = " " + content["user"];
@@ -447,7 +585,7 @@ socket.on("user ban", function(content) {
     toReplace.innerText = content["user"];
     banDiv.appendChild(toReplace);
 })
-socket.on("unbanned", function(content) {
+socket.on("unbanned", function (content) {
     let classname = document.getElementsByClassName("show");
     content["user"] = " " + content["user"];
     for (let i = 0; i < classname.length; i++) {
@@ -455,7 +593,7 @@ socket.on("unbanned", function(content) {
         if (content["user"] == name.id) {
             name.remove();
         }
-        
+
     }
 });
 socket.on("get", function (content) {
@@ -481,7 +619,7 @@ socket.on("get", function (content) {
         toReplace.className = "show";
         toReplace.innerText = ban;
         banDiv.appendChild(toReplace);
-        if (i != bans.length-1) {
+        if (i != bans.length - 1) {
             banDiv.appendChild(line);
         }
     }
@@ -538,8 +676,8 @@ socket.on("get", function (content) {
     if (curruser == owner) {
         document.getElementById("bannedUsers").hidden = false;
         document.getElementById("dropButton").hidden = false;
-        document.getElementById("arrow").hidden=false;
-        document.getElementById("arrow").src="static/arrow.png"
+        document.getElementById("arrow1").hidden = false;
+        document.getElementById("arrow2").hidden = false;
     }
 
 });
@@ -563,7 +701,15 @@ socket.on("message deleted", function (content) {
     }
 
 })
-
+socket.on("message edited", function(content) {
+    if (!canMessage) {
+        return;
+    }
+    let id2 = content["id"];
+    let text = content["text"];
+    let mesCont = document.getElementById(id2);
+    mesCont.parentElement.children[2].textContent = text;
+})
 socket.on("message recieved", function (content) {
     if (!canMessage) {
         return;
