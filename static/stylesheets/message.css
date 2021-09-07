@@ -73,17 +73,15 @@ body{
     width: 100vh;
     border-radius: 5px 5px 0px 0px;
     z-index: 1;
-    ;
 }
 
 .remove-room form{
     display: grid;
     position: relative;
-    bottom: 25px;
-    left: 325px;
+    left: calc(50vw + 55px);
     width: 0px;
     z-index: 20;
-    
+    top: -22px;
 }
 .remove-room input{
     border-radius: 6px;
@@ -94,7 +92,6 @@ body{
     background-color: white;
     transition-duration: 0.4s;
     width:100px;
-    
 }
 .remove-room input:hover{
     background-color: #f44336;
@@ -103,12 +100,10 @@ body{
 .leave-room form{
     display: grid;
     position: relative;
-    bottom: -5px;
-    left: 210px;
+    left: calc(50vw - 55px);
     width: 0px;
     z-index: 20;
-    
-
+    top: 8px;
 }
 .leave-room input{
     border-radius: 6px;
@@ -153,29 +148,27 @@ body{
 }
 
 .chat-body{
-    height: 91vh;
+    height: 88vh;
     width: 100%;
     overflow: auto;
     z-index: 0;
     background: rgba(0,0,0,0);
-    ;
 }
-
 .SendMess {
     background-color: #181818;
-    position: relative;
-    bottom: -40px;
+    position: absolute;
     padding: 20px;
-    z-index: 2;
-    
-
+    z-index: 1;
+    bottom: 0px;
+    width: 100vw;
 }
 .SendMess input{
-    width: inherit;
+    width: 50vw;
     height: inherit;
     box-sizing: border-box;
     resize: none;
     border: solid;
+    font-family: 'Titillium Web', sans-serif;
     background-color: #101010;
     border-color: #101010;
     box-shadow: #101010;
@@ -184,9 +177,9 @@ body{
     position: absolute;
     left: 10px;
     padding: 5px;
+    font-size: 0.8rem;
     bottom: 4px;
     transition-duration: 0.7s;
-    
 
 }
 .SendMess input:hover{
@@ -199,8 +192,7 @@ body{
     margin: 10px auto;
     height: fit-content;
     right: 30px;
-    top: 50px;
-    width: 200px;
+    width: 50vw;
     padding: 5px 5px 5px 10px;
     z-index: 1;
 }
@@ -302,6 +294,38 @@ body{
     z-index: 100;
     border-radius: 7px;
 }
+#editMes input:hover{
+    background-color: rgb(75, 106, 197);
+    color: white;
+}
+#editMes {
+    position: relative;
+    top: 2px;
+}
+.charCount {
+    position: relative;
+    z-index: 100;
+    color: white;
+    right: -55px;
+    font-size: 0.8rem;
+}
+#editText{
+    color: white;
+    position: relative;
+    right: -55px;
+    font-family: 'Titillium Web', sans-serif;
+    font-size: 0.8rem;
+    word-wrap: break-word;
+    border-radius: 8px;
+    bottom: 10px;
+    background: #444444;
+    border: 0;
+    font-weight: bold;
+    box-sizing: border-box;
+    padding: 5px;
+    border-style: solid;
+    max-height: 100vh;
+}
 .copyUser{
     width:inherit;
     height: 30px;
@@ -347,7 +371,7 @@ body{
 .arrow {
     scale: 0.08;
     position: absolute;
-    z-index: 102;
+    z-index: 2;
     right: 180px;
     top: -187px;
     display: inline-block;
@@ -362,17 +386,45 @@ body{
     display: inline-block;
 }
 .bannedUsersSearch {
-    display:none;
+    opacity: 0;
     position: relative;
-    z-index: 1;
+    z-index: -1;
+    top: -30px;
+    transition: all 0.25s ease-in-out;
 }
 .show {
-    display: block;
+    opacity: 1;
+    top: 0px;
+}
+.arrow1{
+    position: relative;
+    height: 3px;
+    z-index: 3;
+    border-radius: 5px;
+    top: 22px;
+    left: 130px;
+    transform: rotate(45deg);
+    width: 30px;
+    background-color: #181818;
+    transition: all 0.1s ease-in-out;
+}
+.arrow2{
+    position: relative;
+    height: 3px;
+    z-index: 3;
+    border-radius: 5px;
+    top: 18px;
+    left: 150px;
+    pointer-events: none;
+    width: 30px;
+    transform: rotate(135deg);
+    background-color: #181818;
+    transition: all 0.1s ease-in-out;
 }
 .banList {
-    border: 3px solid rgb(0, 177, 147);
+    border: 2px solid #181818;
     border-top: none;
-    background-color: hsl(0, 0%, 19%);
+    background-color: #444444;
     color: rgb(196, 196, 196);
     border-bottom-right-radius: 5px;
     border-bottom-left-radius: 5px;
@@ -382,23 +434,24 @@ body{
 }
 .dropbtn {
     width: 200px;
-    background-color: hsl(0, 0%, 19%);
+    background-color: #444444;
     padding: 5px;
     cursor: pointer;
     font-size: 16px;
     text-align: left;
     color: rgb(196, 196, 196);
-    border: 3px solid rgb(0, 177, 147);
+    border: 2px solid #181818;
     border-top-left-radius: 10px;
     border-top-right-radius: 10px;
+    transition: all .25s ease;
 }
 .bannedSearchInput {
     box-sizing: border-box;
     font-size: 16px;
     color: rgb(196, 196, 196);
     border:none;
-    border: 3px solid rgb(0, 177, 147);
-    background-color: hsl(0, 0%, 19%);
+    border: 2px solid #181818;
+    background-color: #444444;
     width: 200px;
     border-top: none;
 }
