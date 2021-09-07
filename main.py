@@ -161,11 +161,6 @@ def ban(json):
     username = json["username"]
     userRooms = UserModel.query.filter_by(room=session.get("room")).all()
     found = False
-    for user2 in userRooms:
-        if(user2.username == username):
-            found=True
-    if (not found):
-        return
     if current_user.username != user.username:
         print(current_user.username)
         print(user.username)
@@ -258,6 +253,25 @@ def leaveRoom():
     db.session.add(usermondel)
     db.session.commit()
 
+@socketio.on("edit message")
+def edit(json):
+    id = json["id"]
+    text = json["text"]
+    if (len(text) == 0):
+        return
+    messages = MessageModel.query.filter_by(id=id).first()
+    Rooms = RoomModel.query.filter_by(room_name=session["room"]).first()
+    if (current_user.username != messages.author):
+        return
+    db.session.delete(messages)
+    messages.content = text
+    db.session.add(messages)
+    db.session.commit()
+
+    socketio.emit("message edited", {
+        "text" : text,
+        "id" : id
+    }, callback=edit, room=session["room"])
 
 @socketio.on("load")
 def load(json):
@@ -294,8 +308,11 @@ def load(json):
     timezone = json["timezone"]
     
     j = 0
-
+    if (section_start < 0):
+        return
     for i in range(section_start, section_end):
+        print(i)
+        print(j)
         content[j] = allMessages[i].content
         authors[j] = allMessages[i].author
         time[j] = int(allMessages[i].time) /60
