@@ -1,0 +1,83 @@
+<link href="static/stylesheets/profile.css" rel="stylesheet" >
+<link rel="shortcut icon" href="{{ url_for('static', filename='favicon.ico') }}">
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"
+    integrity="sha512-q/dWJ3kcmjBLU4Qc47E4A9kTB4m3wuTY7vkFJDTZKjTs8jhyGQnaUrxa0Ytd0ssMZhbNua9hE+E7Qv1j+DyZwA=="
+    crossorigin="anonymous"></script>
+
+<div class="topBar">
+    <p>{{username}}</p>
+</div>
+<div id="wrapper" class="wrapper">
+    <div id="totalMess" class="totalMess">
+        <p>You have sent a total of 0 messages</p>
+    </div>
+    <div id="uploadPFP" class="uploadPFP">
+        <form action="" method="POST">
+            <input id="fileupload" type="submit" name="uploadPFP" value="Change Profile Picture"/>
+        </form>
+    </div>
+    <div id="imageWrapper">
+        <img id="display-image" src="" />
+    </div>
+</div>
+
+<div class="sideBar">
+    <div class="sepLine"></div>
+    <p><a href="login">Login</a></p>
+    <div class="sepLine"></div>
+    <p><a href="register">Register</a></p>
+    <div class="sepLine"></div>
+    <p><a href="chat">Chat</a></p>
+    <div class="sepLine"></div>
+    <p><a href="logout">Logout</a></p>
+    <div class="sepLine"></div>
+    <p><a href="profile">Profile</a></p>
+    <div class="sepLine"></div>
+</div>
+<div class="IncorrectPass" id="error">
+    <p>{{context}}</p>
+</div>
+
+<script>
+    var socket = io();
+
+    socket.emit("profile");
+    socket.on("getProfileData", function(content) {
+        let totalMess = content["totalMess"];
+        let pfp = content["pfp"];
+        if (pfp != undefined) {
+            var reader = new FileReader();
+            img = document.getElementById("display-image")
+            img.src = pfp;
+            document.getElementById("imageWrapper").style.display = "unset";
+        }
+        let total = document.getElementById("totalMess");
+        total.children[0].textContent = "You have sent a total of " + totalMess + " messages";
+    });
+    var form = $("#uploadPFP").on("submit", function (e) {
+        e.preventDefault();
+        let input = document.createElement('input');
+        input.type = 'file';
+        input.accept = ".png, .jpg, .jepg";
+        input.onchange = _ => {
+                let files =   Array.from(input.files);
+                handleImageUpload(files[0])
+                document.getElementById("imageWrapper").style.display = "unset";
+            };
+        input.click();
+    });
+    function handleImageUpload(files) 
+    {
+        var image = files;
+        var reader = new FileReader();
+        reader.onload = function(e) {
+            img = document.getElementById("display-image")
+            img.src = e.target.result;
+            socket.emit("setImage", {
+                "data" : e.target.result
+            })
+        }
+        reader.readAsDataURL(image);
+    } 
+</script>
