@@ -256,11 +256,12 @@ function msgLoader() {
     if (messagesArr.length < 26) {
         return;
     }
-    if (messagesArr.length * currentSection > 26 * currentSection) {
+    if (messagesArr.length > (26 * currentSection )) {
         return;
     }
     let start = messagesArr.length - (26 * currentSection)
     let bottom25 = messagesArr.slice(start, messagesArr.length - (26 * currentSection) + 27);
+    console.log(bottom25);
     if (isElementInViewport(bottom25[0].children[0])) {
         if (run == true) {
             return;
