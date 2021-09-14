@@ -2,7 +2,7 @@ import re
 from flask import Flask,render_template,request,redirect, session
 from flask_login import login_required, current_user, login_user, logout_user
 from werkzeug import debug
-from models import BanModel, RoomModel, UserModel,db,login, MessageModel
+from models import BanModel, RoomModel, UserModel,db,login, MessageModel, ImageModel
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
 from flask_socketio import SocketIO, join_room, leave_room, emit
@@ -31,6 +31,7 @@ def create_all():
 @app.route("/")
 def root():
     return redirect("/chat")
+
 
 @app.route('/chat', methods=["GET", "POST"])
 @login_required
@@ -121,7 +122,6 @@ def chat():
 def kick(json):
     user = RoomModel.query.filter_by(room_name = session.get("room")).first()
     if current_user.username != user.username:
-        print("not owner")
         return
     username = json["username"]
     usertokick = UserModel.query.filter_by(username=username).first()
@@ -137,6 +137,41 @@ def kick(json):
         "alert" : False,
         "text" : ""
     }, callback=kick, room=usertokick.sid)
+
+@app.route("/profile")
+@login_required
+def prof():
+    return render_template("profile.html", username=current_user.username)
+
+@socketio.on("setImage")
+def setImage(json):
+    data = json["data"]
+    photos = ImageModel.query.filter_by(username=current_user.username).all()
+    if (len(photos) != 0):
+        photos[0].image = data
+        photos[0].username=current_user.username
+        db.session.add(photos[0])
+        db.session.commit()
+    else:
+        pics = ImageModel(username=current_user.username)
+        pics.image = data
+        db.session.add(pics)
+        db.session.commit()
+
+@socketio.on("profile")
+def profile():
+    messages = MessageModel.query.filter_by(author=current_user.username).all()
+    pfp = ImageModel.query.filter_by(username=current_user.username).first()
+    MessageLen = len(messages)
+    if (pfp == None):
+        socketio.emit("getProfileData", {
+            "totalMess" : MessageLen
+        }, callback=profile, room=request.sid)
+    else:
+        socketio.emit("getProfileData", {
+            "totalMess" : MessageLen,
+            "pfp" : pfp.image
+        }, callback=profile, room=request.sid)
 
 @socketio.on("unban")
 def unban(json):
@@ -162,8 +197,6 @@ def ban(json):
     userRooms = UserModel.query.filter_by(room=session.get("room")).all()
     found = False
     if current_user.username != user.username:
-        print(current_user.username)
-        print(user.username)
         return
 
     ban = BanModel()
@@ -311,8 +344,6 @@ def load(json):
     if (section_start < 0):
         return
     for i in range(section_start, section_end):
-        print(i)
-        print(j)
         content[j] = allMessages[i].content
         authors[j] = allMessages[i].author
         time[j] = int(allMessages[i].time) /60
