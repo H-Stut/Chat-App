@@ -10,20 +10,6 @@
             <p>Room:</p>
             <h2>{{session["room"]}}</h2>
         </div>
-        <div class="alert" id="alert" hidden="true">
-            <span class="closebtn" onclick="this.parentElement.style.display='none';">&times;</span>
-            The host has deleted the room, you will be redirected in 7 seconds
-        </div>
-        <div class="chat-body" id="chat-body">
-            <div class="msg-insert" id="msg-insert">
-            </div>
-        </div>
-        <div class="SendMess" id="SendMess">
-            <form action="" method="POST">
-                <input type="text" class="message" placeholder="Message #{{session['room']}}" />
-                <input type="hidden" value="Send Message" />
-            </form>
-        </div>
         <div class="leave-room" id="leave">
             <form action="" method="POST">
                 <input type="submit" name="leave" value="Leave Room" />
@@ -41,7 +27,20 @@
             </div>
         </div>
         {% endif %}
-
+        <div class="alert" id="alert" hidden="true">
+            <span class="closebtn" onclick="this.parentElement.style.display='none';">&times;</span>
+            The host has deleted the room, you will be redirected in 7 seconds
+        </div>
+        <div class="chat-body" id="chat-body">
+            <div class="msg-insert" id="msg-insert">
+            </div>
+        </div>
+        <div class="SendMess" id="SendMess">
+            <form action="" method="POST">
+                <input type="text" class="message" placeholder="Message #{{session['room']}}" />
+                <input type="hidden" value="Send Message" />
+            </form>
+        </div>
     </div>
 </div>
 <div class="confirm-boxes" id="confirm-boxes">
@@ -86,6 +85,12 @@
             <input type="submit" name="deleteMess" value="Delete Message" />
         </form>
     </div>
+    <div class="line1" id="line1"> </div>
+    <div class="copyUser" id="editMes" hidden="true">
+        <form action="" method="POST">
+            <input type="submit" name="editMes" value="Edit Message"/>
+        </form>
+    </div>
     <div class="owner" id="owner" hidden="true">
         <form action="" method="POST">
             <input type="submit" name="owner" value="Chat Room Owner" />
@@ -114,11 +119,12 @@
         <p>Current Users</p>
     </div>
 </div>
-<img id="arrow" class="arrow" hidden="true">
 <div class="bannedUsers" id="bannedUsers" hidden="true">
+    <div class="arrow1" id="arrow1" hidden="true"></div>
+    <div class="arrow2" id="arrow2" hidden="true"></div>
     <button id="dropButton" hidden="true" onclick="dropDown()" class="dropbtn">Banned Users</button>
     <div id="bannedUsersSearch" class="bannedUsersSearch">
-        <input type="text" placeholder="Search.." id="bannedSearchInput" class="bannedSearchInput" onkeyup="searchUsers()">
+        <input type="text" placeholder="Search.." id="bannedSearchInput" class="bannedSearchInput" onkeyup="filterFunction()">
         <div id="banList" class="banList">
 
         </div> 
