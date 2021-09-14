@@ -13,7 +13,14 @@ class MessageModel(UserMixin, db.Model):
     content = db.Column(db.String())
     room = db.Column(db.String())
     time = db.Column(db.Integer())
-        
+
+
+class ImageModel(UserMixin, db.Model):
+    __tablename__ = "profile_pics"
+
+    username = db.Column(db.String(100))
+    image = db.Column(db.String())
+    id = db.Column(db.Integer, primary_key=True)
 
 class RoomModel(UserMixin, db.Model):
     __tablename__ = "rooms"
