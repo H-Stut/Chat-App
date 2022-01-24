@@ -430,8 +430,9 @@ wrapper.onscroll = msgLoader;
 let toScroll;
 let scrollPos;
 let scrollHeight;
+let temp_stop;
 function msgLoader(event) {
-    if (finish) return
+    if (finish || temp_stop) return
     test = document.getElementById("chat-body");
     scrollPos = test.scrollTop;
     scrollHeight = test.scrollHeight;
@@ -440,6 +441,7 @@ function msgLoader(event) {
         socket.emit("get messages", {
             "counter": counter
         })
+        temp_stop = true;
     }
 }
 
@@ -458,6 +460,7 @@ socket.on("appendMess", function (content) {
     let chatBody = document.getElementById("chat-body");
     let scrollAmount = (chatBody.scrollHeight - scrollHeight) + scrollPos;
     $("#chat-body").scrollTop(scrollAmount)
+    temp_stop = false
 })
 
 //socket.on("")
