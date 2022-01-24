@@ -139,6 +139,9 @@ body {
     cursor:pointer;
     display: inline-block;
 }
+.imageWrapper2{
+    position: relative;
+}
 #imageWrapper{
     position: relative;
     display: none;
