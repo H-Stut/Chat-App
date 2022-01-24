@@ -576,7 +576,7 @@ def delelteMessage(json):
     }, callback=delelteMessage, room=session["room"])
 def getRooms():
     username = RoomModel.query.filter_by(username=current_user.username).all()
-    roomNames = [username[i].username for i in range(len(username))]
+    roomNames = [username[i].room_name for i in range(len(username))]
     return roomNames
 
 if __name__=="__main__":
