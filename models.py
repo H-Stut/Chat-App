@@ -6,6 +6,11 @@ from flask_login import LoginManager
 login = LoginManager()
 db = SQLAlchemy()
 
+class ConnectedUsers(UserMixin, db.Model):
+    __tablename__ = "connectedclients"
+    id = db.Column(db.Integer, primary_key=True)
+    username = db.Column(db.String())
+    room = db.Column(db.String())
 class MessageModel(UserMixin, db.Model):
     __tablename__ = "messages"
     id = db.Column(db.Integer, primary_key=True)
@@ -13,14 +18,6 @@ class MessageModel(UserMixin, db.Model):
     content = db.Column(db.String())
     room = db.Column(db.String())
     time = db.Column(db.Integer())
-
-
-class ImageModel(UserMixin, db.Model):
-    __tablename__ = "profile_pics"
-
-    username = db.Column(db.String(100))
-    image = db.Column(db.String())
-    id = db.Column(db.Integer, primary_key=True)
 
 class RoomModel(UserMixin, db.Model):
     __tablename__ = "rooms"
@@ -50,6 +47,7 @@ class UserModel(UserMixin, db.Model):
     password_hash = db.Column(db.String())
     sid = db.Column(db.String())
     room = db.Column(db.String())
+    image = db.Column(db.String())
     
     def set_password(self,password):
         self.password_hash = generate_password_hash(password)
